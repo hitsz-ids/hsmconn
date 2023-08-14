@@ -1,0 +1,7 @@
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+BasedOnStyle: Google
+ColumnLimit: 120
+AllowShortFunctionsOnASingleLine: None
+# https://stackoverflow.com/questions/51326844/exclude-directory-clang-format/56243326#56243326
+# DisableFormat: true
+# SortIncludes: false

@@ -1,0 +1,47 @@
+backends:
+  hsm:
+  # - bjca:
+  #     connector: /usr/lib/libbjcaSDF.so
+  #     nodes:
+  #       - name: node1
+  #         config: /etc/BJCA_HSM_Config.ini
+  # - ndsec:
+  #     connector: /usr/lib/libhsm_core.so
+  #     nodes:
+  #       - name: node1
+  #         config: /etc/ndsec.json
+  #         pooling: false
+  #         pci-e: true
+  #         # weight default to 10 if not specified
+  #         weight: 10
+  # hsm dummy emulator
+  # - emu:
+  #     connector: /usr/local/lib/libhsm_emu.so
+  #     nodes:
+  #       - name: node1
+  #         config: /etc/hsm-emu.yaml
+  #         pooling: true
+  #         weight: 100
+  # - fisec:
+  #     connector: /usr/lib/libsgd.so
+  #     nodes:
+  #       - name: node1
+  #         config:
+  svs:
+    # 中安云科
+    - sinocipher:
+        connector: /usr/local/lib/libsvs_api.so
+        nodes:
+          - name: svs_node1
+            config:
+            ip: 120.192.18.46
+            port: 13558
+            pooling: true
+  tss:
+    - sinocipher:
+        connector: /usr/lib/libtsa_api_x64.so
+        nodes:
+          - name: tss-node1
+            config: /etc/zatsa.ini
+
+
