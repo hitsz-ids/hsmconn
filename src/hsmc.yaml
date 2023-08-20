@@ -27,21 +27,18 @@ backends:
   #     nodes:
   #       - name: node1
   #         config:
-  svs:
-    # 中安云科
-    - sinocipher:
-        connector: /usr/local/lib/libsvs_api.so
-        nodes:
-          - name: svs_node1
-            config:
-            ip: 120.192.18.46
-            port: 13558
-            pooling: true
-  tss:
-    - sinocipher:
-        connector: /usr/lib/libtsa_api_x64.so
-        nodes:
-          - name: tss-node1
-            config: /etc/zatsa.ini
-
-
+  # svs:
+  #  - sinocipher:
+  #      connector: /usr/local/lib/libsvs_api.so
+  #      nodes:
+  #        - name: svs_node1
+  #          config:
+  #          ip: 120.192.18.46
+  #          port: 13558
+  #          pooling: true
+  # tss:
+  #  - sinocipher:
+  #      connector: /usr/lib/libtsa_api_x64.so
+  #      nodes:
+  #        - name: tss-node1
+  #          config: /etc/zatsa.ini
