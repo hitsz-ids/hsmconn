@@ -41,6 +41,9 @@ namespace hsmc {
 
 const char *SessionFactory::HSMC_CONFIG_ENV_NAME = "HSMC_CONFIG";
 
+SessionFactory::ConnectorRoundTable::ConnectorRoundTable()
+  : choiceIndex(0) {}
+
 SessionFactory::SessionFactory() : shutdown_(false), inited_(false), weight_sum_{0} {
 }
 
@@ -460,8 +463,8 @@ std::vector<uint16_t> SessionFactory::updateWeightRoundTable(ConnectorType ct) {
     connector_round.resize(this->weight_sum_[static_cast<int>(ct)]);
     weight_current_array.resize(conns->size());
     for (int n = 0; n < this->weight_sum_[static_cast<int>(ct)]; n++) {
-      int maxSub;
-      for (int m = 0; m < conns->size(); m++) {
+      size_t maxSub;
+      for (size_t m = 0; m < conns->size(); m++) {
         weight_current_array[m] += (*conns)[m]->getWeight();
         if (m == 0 || (*conns)[m]->getWeight() > weight_current_array[maxSub]) {
           maxSub = m;
@@ -475,7 +478,7 @@ std::vector<uint16_t> SessionFactory::updateWeightRoundTable(ConnectorType ct) {
 }
 
 std::string SessionFactory::getWeightRoundConnectorName(ConnectorType ct) {
-  ConnectorRoundTable *crtable;
+  ConnectorRoundTable *crtable = nullptr;
   ConnectorArray *conns = nullptr;
   if (ConnectorType::CT_HSM == ct) {
     conns = &hsm_connectors_;

@@ -1,10 +1,10 @@
 # cmake/opentelemetry-cpp.cmake
 
-if (OPENTELEMETRYCPP_FETCHCONTENT)
+find_package(opentelemetry-cpp QUIET)
+if (NOT opentelemetry-cpp_FOUND)
     set(OPENTELEMETRYCPP_GIT_REPO https://github.com/open-telemetry/opentelemetry-cpp.git)
     set(OPENTELEMETRYCPP_VERSION v1.8.0)
-
-    message(STATUS "Using opentelemetry-cpp ${OPENTELEMETRYCPP_VERSION} via FetchContent")
+    message(STATUS "Fetching opentelemetry-cpp@${OPENTELEMETRYCPP_VERSION} from repository ${OPENTELEMETRYCPP_GIT_REPO}")
 
     include(FetchContent)
     FetchContent_Declare(
@@ -12,7 +12,6 @@ if (OPENTELEMETRYCPP_FETCHCONTENT)
             GIT_REPOSITORY ${OPENTELEMETRYCPP_GIT_REPO}
             GIT_TAG ${OPENTELEMETRYCPP_VERSION})
 
-    #set(WITH_API_ONLY ON)
     set(WITH_ABSEIL ON)
     set(WITH_BENCHMARK OFF)
     set(WITH_EXAMPLES OFF)
@@ -25,7 +24,6 @@ if (OPENTELEMETRYCPP_FETCHCONTENT)
     set(OPENTELEMETRY_SDK opentelemetry-cpp::sdk)
     add_definitions(-DENABLE_OPENTELEMETRY_API)
 else()
-    find_package(opentelemetry-cpp REQUIRED)
     message(STATUS "Using opentelemetry-cpp ${opentelemetry-cpp_VERSION}")
 
     set(OPENTELEMETRY_API opentelemetry-cpp::api)

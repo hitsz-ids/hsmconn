@@ -323,17 +323,17 @@ Session SessionPool::getByConnector(const std::string &connector) {
 Session SessionPool::getByConnectorSet(const std::vector<std::string> &connSet) {
   shutdownCheck();
 
-  int setSize = connSet.size();
+  size_t setSize = connSet.size();
   if (0 == setSize) {
     throw NullValueException(absl::StrFormat("connector set is null"));
   }
 
-  int index = 0;
-  for (int i = 0; i < setSize - 1; i++) {
+  size_t index = 0;
+  for (size_t i = 0; i < setSize - 1; i++) {
     try {
       index = randomSeed_.fetch_add(1) % setSize;
       return getByConnector(connSet[index]);
-    } catch (Exception ex) {
+    } catch (Exception const &ex) {
       Logger()->error("fail to get session from {}", connSet[index]);
       continue;
     }
@@ -418,16 +418,16 @@ void SessionPool::closeAll(SessionMap &sessionMap) {
   }
 }
 
-int SessionPool::capacity() const {
+size_t SessionPool::capacity() const {
   return maxSessions_;
 }
 
-int SessionPool::used() const {
+size_t SessionPool::used() const {
   std::lock_guard<std::recursive_mutex> guard(this->mutex_);
   return nSessions_ - idle();
 }
 
-int SessionPool::idle() const {
+size_t SessionPool::idle() const {
   std::lock_guard<std::recursive_mutex> guard(this->mutex_);
   return hsmIdleSessions_.size() + svsIdleSessions_.size() + tsIdleSessions_.size();
 }

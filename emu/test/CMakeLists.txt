@@ -1,6 +1,5 @@
 find_package(Threads REQUIRED)
-
-include(cmake/gtest.cmake)
+include(gtest)
 
 set(test-source-pattern "*.cc" )
 if (CMAKE_VERSION VERSION_GREATER 3.11)
@@ -17,9 +16,12 @@ target_sources(hsm-emu-tests
 target_include_directories(hsm-emu-tests
   PRIVATE
     ${PROJECT_SOURCE_DIR}/emu/src/include)
+
 target_link_libraries(hsm-emu-tests
   PRIVATE
     Threads::Threads
+    absl::strings
+    absl::memory
     hsm-emu
     ${_GTEST})
 

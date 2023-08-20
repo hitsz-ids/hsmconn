@@ -25,7 +25,7 @@ absl::BitGen bitgen_;
 std::string generate_uuid(unsigned int len) {
   std::stringstream ss;
 
-  for (auto i = 0; i < len; i++) {
+  for (size_t i = 0; i < len; i++) {
     const auto rc = absl::Uniform(bitgen_, 0, 256);
     std::stringstream hexstream;
     hexstream << std::hex << rc;

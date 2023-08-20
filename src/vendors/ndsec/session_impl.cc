@@ -68,7 +68,7 @@ bool SessionImpl::isGood(int *errcode, bool *recover) const {
     if (errcode != nullptr) {
       *errcode = rc;
     }
-    if (recover != nullptr && 0xdead0000 == rc) {
+    if (recover != nullptr && 0xdead0000 == static_cast<unsigned int>(rc)) {
       *recover = true;
     }
     // 兼容在客户端实现SDF_GetDeviceInfo

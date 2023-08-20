@@ -5,9 +5,11 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MACOSX_RPATH 1)
 
-find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
-find_package(absl REQUIRED)
+
+list(APPEND CMAKE_MODULE_PATH
+    ${CMAKE_CURRENT_LIST_DIR}/cmake
+)
 
 # installation destinations
 if(UNIX OR VXWORKS)
@@ -24,8 +26,15 @@ else()
     message(FATAL_ERROR "Could not set install folders for this platform!")
 endif()
 
-include(cmake/configuration.cmake)
-include(cmake/yaml-cpp.cmake)
+include(configuration)
+include(abseil-cpp)
+include(yaml-cpp)
+
+if(HSMC_BUILD_SHARED_LIBS)
+    set(hsmc-type SHARED)
+else()
+    set(hsmc-type STATIC)
+endif()
 
 # subdirectories
 add_subdirectory(src)
@@ -33,24 +42,28 @@ if(HSMC_BUILD_TESTS)
     enable_testing()
     add_subdirectory(test)
 endif()
+
 if(HSMC_BUILD_HSMEMU)
     add_subdirectory(emu)
 endif()
+
 if(HSMC_BUILD_DOCS)
     # Add the cmake folder so the FindSphinx module is found
     set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
     add_subdirectory(docs)
 endif()
 
-# install readme and license
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
-        DESTINATION ${HSMC_ADDITIONAL_FILES_INSTALL_DIR})
+if(HSMC_INSTALL)
+    # install readme and license
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
+            DESTINATION ${HSMC_ADDITIONAL_FILES_INSTALL_DIR})
 
-install(EXPORT hsmcTargets
-        FILE hsmcTargets.cmake
-        NAMESPACE hsmc::
-        DESTINATION ${HSMC_CMAKE_CONFIG_INSTALL_DIR})
+    install(EXPORT hsmcTargets
+            FILE hsmcTargets.cmake
+            NAMESPACE hsmc::
+            DESTINATION ${HSMC_CMAKE_CONFIG_INSTALL_DIR})
 
-configure_file(hsmc-config.cmake.in hsmc-config.cmake @ONLY)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/hsmc-config.cmake"
-        DESTINATION ${HSMC_CMAKE_CONFIG_INSTALL_DIR})
+    configure_file(hsmc-config.cmake.in hsmc-config.cmake @ONLY)
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/hsmc-config.cmake"
+            DESTINATION ${HSMC_CMAKE_CONFIG_INSTALL_DIR})
+endif()

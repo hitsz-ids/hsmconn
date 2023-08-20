@@ -14,7 +14,7 @@
 
 #include "gtest/gtest.h"
 #include "hsmc/hsmc.h"
-#include "utils/uuid.h"
+//#include "utils/uuid.h"
 
 #if ENABLE_OPENTELEMETRY_API
 // implemented in metric.cc

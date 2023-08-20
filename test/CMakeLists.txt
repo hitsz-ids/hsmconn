@@ -1,4 +1,4 @@
-include(cmake/gtest.cmake)
+include(gtest)
 
 set(test-source-pattern "*.cc" )
 if (CMAKE_VERSION VERSION_GREATER 3.11)
@@ -9,19 +9,24 @@ file(GLOB test-sources ${test-source-pattern})
 
 set(HSMC_TESTS hsmc-tests)
 add_executable(${HSMC_TESTS} "")
+
 target_compile_options(
         ${HSMC_TESTS} PRIVATE)
+
 target_sources(${HSMC_TESTS}
   PRIVATE
     ${test-sources})
+
 target_include_directories(${HSMC_TESTS}
   PRIVATE
     ${PROJECT_SOURCE_DIR}/include)
+
 target_link_libraries(${HSMC_TESTS}
   PRIVATE
     Threads::Threads
     hsmc
     hsm-emu
+    absl::memory
     ${_GTEST}
     ${OPENTELEMETRY_RESOURCES}
     ${OPENTELEMETRY_OSTREAM_METRICS_EXPORTER}

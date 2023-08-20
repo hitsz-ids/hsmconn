@@ -626,9 +626,9 @@ int SDF_GetDeviceInfo(void *hSessionHandle, DEVICEINFO *pstDeviceInfo) {
 
     memset(pstDeviceInfo, 0, sizeof(DEVICEINFO));
     // 设备生产厂商名称
-    memcpy(pstDeviceInfo->IssuerName, "HSMC", 7);
+    memcpy(pstDeviceInfo->IssuerName, "HSMC", 4);
     // 设备型号
-    memcpy(pstDeviceInfo->DeviceName, "HSM-EMU", 12);
+    memcpy(pstDeviceInfo->DeviceName, "HSM-EMU", 7);
     // 设备编号：日期(8bytes)+批次号(3bytes)+流水号(5bytes)
     memcpy(pstDeviceInfo->DeviceSerial, "2021122800100001", 16);
     // 密码设备内部软件的版本号

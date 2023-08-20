@@ -2,12 +2,8 @@
 
 set(header_path ${CMAKE_SOURCE_DIR}/include/hsmc)
 
-find_package(PkgConfig REQUIRED)
-find_package(Threads REQUIRED)
-find_package(absl REQUIRED)
-
 # third party dependencies
-include(${CMAKE_SOURCE_DIR}/cmake/spdlog.cmake)
+include(spdlog)
 
 set(HSMC_SRC
         base/exception.cc
@@ -80,14 +76,17 @@ set(HSMC_SRC
 configure_file("version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h")
 
 set(HSMC_TARGET_NAME ${PROJECT_NAME})
-add_library(${HSMC_TARGET_NAME}
+add_library(${HSMC_TARGET_NAME} ${hsmc-type}
         ${HSMC_SRC})
-target_include_directories(${HSMC_TARGET_NAME} PUBLIC
+target_include_directories(${HSMC_TARGET_NAME} 
+	PUBLIC
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> # for generated files in build mode
         $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
-        $<INSTALL_INTERFACE:include>)
+        $<INSTALL_INTERFACE:include>
+	PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+	)
 target_compile_options(
         ${HSMC_TARGET_NAME} PRIVATE
         "-Wnon-virtual-dtor")
@@ -100,10 +99,10 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     if("${CMAKE_CXX_SIMULATE_ID}" STREQUAL "MSVC")
         target_compile_options(hsmc PRIVATE /WX /W3 /D _CRT_SECURE_NO_WARNINGS)
     else()
-        target_compile_options(hsmc PRIVATE -pedantic-errors -Werror -Wall -Wextra -Wconversion -Wsign-conversion)
+        target_compile_options(hsmc PRIVATE -Werror -Wall -Wextra -Wno-reorder -Wno-unused-parameter)
     endif()
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-    target_compile_options(hsmc PRIVATE -pedantic-errors -Werror -Wall -Wextra -Wconversion -Wsign-conversion)
+    target_compile_options(hsmc PRIVATE -Werror -Wall -Wextra -Wno-reorder -Wno-unused-parameter)
 elseif(MSVC)
     target_compile_options(hsmc PRIVATE /WX /W3 /D _CRT_SECURE_NO_WARNINGS)
 endif()
@@ -114,26 +113,21 @@ set_target_properties(${HSMC_TARGET_NAME} PROPERTIES
         POSITION_INDEPENDENT_CODE ON)
 
 target_link_libraries(${HSMC_TARGET_NAME}
+	PUBLIC
         ${SYMBOL_HIDDEN_FLAG}
+	# metric dependency
+        ${OPENTELEMETRY_API}
+        ${CMAKE_DL_LIBS}
+	PRIVATE
+        # logging dependency
+	spdlog::spdlog_header_only
+        # yaml parsing dependency
+        ${_YAML_CPP}
         # abseil dependencies
         absl::strings
         absl::str_format
-        absl::flat_hash_map
         absl::random_random
-        # yaml parsing dependency
-        ${_YAML_CPP}
-        # logging dependency
-        ${_SPDLOG}
-        # metric dependency
-        ${OPENTELEMETRY_API}
-        ${CMAKE_DL_LIBS})
-
-install(TARGETS ${HSMC_TARGET_NAME}
-        EXPORT        hsmcTargets
-        RUNTIME       DESTINATION ${HSMC_RUNTIME_INSTALL_DIR}
-        LIBRARY       DESTINATION ${HSMC_LIBRARY_INSTALL_DIR}
-        ARCHIVE       DESTINATION ${HSMC_ARCHIVE_INSTALL_DIR}
-        PUBLIC_HEADER DESTINATION ${HSMC_INC_INSTALL_DIR})
+	)
 
 # Write/install version file
 include(CMakePackageConfigHelpers)
@@ -142,15 +136,24 @@ write_basic_package_version_file(${version_file}
         VERSION ${PACKAGE_VERSION}
         COMPATIBILITY AnyNewerVersion)
 
-install(DIRECTORY ${header_path}
+if (HSMC_INSTALL)
+    install(TARGETS ${HSMC_TARGET_NAME}
+        EXPORT        hsmcTargets
+        RUNTIME       DESTINATION ${HSMC_RUNTIME_INSTALL_DIR}
+        LIBRARY       DESTINATION ${HSMC_LIBRARY_INSTALL_DIR}
+        ARCHIVE       DESTINATION ${HSMC_ARCHIVE_INSTALL_DIR}
+        PUBLIC_HEADER DESTINATION ${HSMC_INC_INSTALL_DIR})
+
+    install(DIRECTORY ${header_path}
         DESTINATION ${HSMC_INC_INSTALL_DIR})
 
-install(FILES
+    install(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/version.h
         DESTINATION ${HSMC_INC_INSTALL_DIR}/hsmc)
 
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/hsmc.yaml"
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/hsmc.yaml"
         DESTINATION ${HSMC_ADDITIONAL_FILES_INSTALL_DIR})
 
-install(FILES ${version_file}
+    install(FILES ${version_file}
         DESTINATION ${HSMC_CMAKE_CONFIG_INSTALL_DIR})
+endif()

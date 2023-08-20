@@ -84,15 +84,15 @@ class HSMC_API SessionPool final {
 
   /// 获取连接池的最大容量
   /// \return 返回连接池的最大容量
-  int capacity() const;
+  size_t capacity() const;
 
   /// 获取连接池活动的会话数量
   /// \return 返回连接池活动的会话数量
-  int used() const;
+  size_t used() const;
 
   /// 获取连接池空闲的会话数量
   /// \return 返回连接池空闲的会话数量
-  int idle() const;
+  size_t idle() const;
 
   /// 关闭连接池并释放所有资源
   void shutdown();
@@ -159,26 +159,24 @@ class HSMC_API SessionPool final {
   PooledSessionHolder::Ptr nextSession(SessionMap *container, const std::string &name);
 
  private:
+  SessionFactory &factory_;
   int minSessions_;
   int maxSessions_;
   int nSessions_;
-  SessionMap hsmIdleSessions_;
-  SessionMap svsIdleSessions_;
-  SessionMap tsIdleSessions_;
-  mutable std::recursive_mutex mutex_;
-
-  friend class PooledSessionImpl;
-
- private:
-  SessionFactory &factory_;
   std::atomic_bool shutdown_;
   std::atomic_bool pooling_;
 
   std::atomic_bool th_keepalive_stop_;
   std::atomic<int> th_keepalive_interval_;
+  std::atomic_uint64_t randomSeed_;
+
+  SessionMap hsmIdleSessions_;
+  SessionMap svsIdleSessions_;
+  SessionMap tsIdleSessions_;
+  mutable std::recursive_mutex mutex_;
   std::thread th_keepalive_;
 
-  std::atomic_uint64_t randomSeed_;
+  friend class PooledSessionImpl;
 };
 
 }  // namespace hsmc

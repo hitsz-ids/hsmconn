@@ -16,12 +16,8 @@
 
 #include <mutex>
 #include <vector>
-#ifdef ABSEIL_FLAT_HASH_MAP
-#include "absl/container/flat_hash_map.h"
-#else
+#include <atomic>
 #include <unordered_map>
-#endif
-#include "absl/random/random.h"
 #include "connector.h"
 #include "session.h"
 
@@ -115,8 +111,9 @@ class HSMC_API SessionFactory final {
   /// 设备连接器的权重表
   class ConnectorRoundTable {
    public:
+    ConnectorRoundTable();
+    size_t choiceIndex;
     mutable std::recursive_mutex mutex_;
-    int choiceIndex = 0;
     std::vector<uint16_t> connector_round_table;
   };
 
@@ -136,23 +133,18 @@ class HSMC_API SessionFactory final {
   std::vector<uint16_t> updateWeightRoundTable(ConnectorType ct);
 
  private:
-#ifdef ABSEIL_FLAT_HASH_MAP
-  using Connectors = absl::flat_hash_map<std::string, Connector::Ptr>;
-#else
   using Connectors = std::unordered_map<std::string, Connector::Ptr>;
-#endif
   Connectors connectors_;
 
   ConnectorArray hsm_connectors_;
   ConnectorArray svs_connectors_;
   ConnectorArray ts_connectors_;
+
+  std::atomic<bool> shutdown_;
+  std::atomic<bool> inited_;
   int weight_sum_[static_cast<int>(ConnectorType::CT_MAX)];
 
   mutable std::recursive_mutex mutex_;
-  std::atomic_bool shutdown_;
-  std::atomic_bool inited_;
-
-  absl::BitGen bitgen_;
 
   static const char *HSMC_CONFIG_ENV_NAME;
 };

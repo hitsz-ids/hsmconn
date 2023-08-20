@@ -5,9 +5,7 @@ set(EMULATOR_TOOL_TARGET_NAME hsm-emu-tool)
 set(OPENSSL_USE_STATIC_LIBS TRUE)
 find_package(OpenSSL REQUIRED)
 
-option(HSM_EMULATOR_BUILD_TESTS "Enable hsm emulator test build" ON)
-
-include(cmake/CLI11.cmake)
+include(CLI11)
 
 set(EMULATOR_LIB_SRC src/emulator.cc)
 add_library(${EMULATOR_LIB_TARGET_NAME} SHARED ${EMULATOR_LIB_SRC})
@@ -17,12 +15,14 @@ target_include_directories(${EMULATOR_LIB_TARGET_NAME} PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>)
 target_link_libraries(${EMULATOR_LIB_TARGET_NAME}
+    PUBLIC
         ${SYMBOL_HIDDEN_FLAG}
+        OpenSSL::Crypto
+        ${CMAKE_DL_LIBS}
+    PRIVATE
         absl::strings
         absl::str_format
-        ${_YAML_CPP}
-        OpenSSL::Crypto
-        ${CMAKE_DL_LIBS})
+        ${_YAML_CPP})
 set_target_properties(${EMULATOR_LIB_TARGET_NAME} PROPERTIES
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR})
@@ -34,23 +34,27 @@ target_include_directories(${EMULATOR_TOOL_TARGET_NAME} PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>)
 target_link_libraries(${EMULATOR_TOOL_TARGET_NAME}
+    PUBLIC
         ${SYMBOL_HIDDEN_FLAG}
+        OpenSSL::Crypto
+    PRIVATE
         absl::strings
         absl::str_format
-        ${_YAML_CPP}
         ${_CLI11}
-        OpenSSL::Crypto)
+        ${_YAML_CPP})
 
-# 编译test
-if(HSM_EMULATOR_BUILD_TESTS)
+if(HSMC_BUILD_HSMEMU_TESTS)
+    enable_testing()
     add_subdirectory(test)
 endif()
 
-# 将库文件，可执行文件，头文件安装到指定目录
-install(TARGETS ${EMULATOR_LIB_TARGET_NAME} ${EMULATOR_TOOL_TARGET_NAME}
+if(HSMC_INSTALL)
+    # 将库文件，可执行文件，头文件安装到指定目录
+    install(TARGETS ${EMULATOR_LIB_TARGET_NAME} ${EMULATOR_TOOL_TARGET_NAME}
         EXPORT  hsmcTargets
         LIBRARY DESTINATION ${HSMC_LIBRARY_INSTALL_DIR}
         RUNTIME DESTINATION ${HSMC_RUNTIME_INSTALL_DIR})
 
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/hsm-emu.yaml"
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/hsm-emu.yaml"
         DESTINATION ${HSMC_ADDITIONAL_FILES_INSTALL_DIR})
+endif()

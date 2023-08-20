@@ -2,9 +2,9 @@ include(CMakeFindDependencyMacro)
 
 # Third-party dependencies
 find_dependency(Threads REQUIRED)
-find_dependency(absl REQUIRED)
-find_dependency(yaml-cpp REQUIRED)
-find_dependency(spdlog REQUIRED)
+#find_dependency(absl REQUIRED)
+#find_dependency(yaml-cpp REQUIRED)
+#find_dependency(spdlog REQUIRED)
 
 # Any extra setup
 

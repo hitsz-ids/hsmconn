@@ -44,7 +44,7 @@ class HSMC_API PooledSessionHolder {
   void access();
 
   /// 获取空闲的毫秒数
-  int idle();
+  int64_t idle();
 
  private:
   LinkedIterator getIterator();
@@ -75,7 +75,7 @@ inline void PooledSessionHolder::access() {
   lastUpdate_ = std::chrono::steady_clock::now();
 }
 
-inline int PooledSessionHolder::idle() {
+inline int64_t PooledSessionHolder::idle() {
   std::lock_guard<std::mutex> guard(this->mux_);
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - lastUpdate_);

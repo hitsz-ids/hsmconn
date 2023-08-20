@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <absl/strings/escaping.h>
-
+#include <absl/memory/memory.h>
 #include "gtest/gtest.h"
 #include "hsmc/connector.h"
 #include "hsmc/session_factory.h"
