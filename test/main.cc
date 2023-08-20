@@ -35,6 +35,39 @@ int main(int argc, char **argv) {
 #if ENABLE_OPENTELEMETRY_API
   //initMetrics();
 #endif
+  std::string filterString; 
+  std::vector<std::string> hsmConn = 
+    ::hsmc::SessionFactory::instance().getConnectorNames(::hsmc::ConnectorType::CT_HSM);
+  if (hsmConn.size() == 0) {
+    if (filterString.size() > 0) {
+      filterString += ":";
+    }
+    filterString += "SessionPoolTest.*:SessionTest.*";
+    std::cerr << "WARN: No HSM nodes configured, disable SessionPoolTest.* and SessionTest.*"
+              << std::endl;
+  }
+  std::vector<std::string> svsConn = 
+    ::hsmc::SessionFactory::instance().getConnectorNames(::hsmc::ConnectorType::CT_SVS);
+  if (svsConn.size() == 0) {
+    if (filterString.size() > 0) {
+      filterString += ":";
+    }
+    filterString += "SVSSessionTest.*";
+    std::cerr << "WARN: No SVS nodes configured, disable SVSSessionTest.*"
+              << std::endl;
+  }
+  std::vector<std::string> tssConn = 
+    ::hsmc::SessionFactory::instance().getConnectorNames(::hsmc::ConnectorType::CT_TSS);
+  if (tssConn.size() == 0) {
+    if (filterString.size() > 0) {
+      filterString += ":";
+    }
+    filterString += "TSSSessionTest.*";
+    std::cerr << "WARN: No TSS nodes configured, disable TSSSessionTest.*"
+              << std::endl;
+  }
+  
+  ::testing::GTEST_FLAG(filter) = "-"+filterString;
 
   int rc = RUN_ALL_TESTS();
 
