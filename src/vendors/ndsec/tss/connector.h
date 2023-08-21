@@ -18,6 +18,7 @@
 
 #include "hsmc/connector.h"
 #include "hsmc/session_impl.h"
+#include "sdf_funcs.h"
 
 namespace hsmc {
 namespace tss {

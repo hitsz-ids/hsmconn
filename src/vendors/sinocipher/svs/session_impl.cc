@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <utility>
-#include "utils/uuid.h"
+#include "session_impl.h"
+
 #include <absl/strings/str_format.h>
-#include "hsmc/svs/sinocipher/session_impl.h"
-#include "hsmc/svs/sinocipher/connector.h"
+
+#include <utility>
+
+#include "connector.h"
+#include "utils/uuid.h"
 
 namespace hsmc {
 namespace svs {

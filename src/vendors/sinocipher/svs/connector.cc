@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hsmc/svs/sinocipher/connector.h"
+#include "connector.h"
 
 #include <absl/strings/str_format.h>
 
@@ -21,7 +21,7 @@
 
 #include "hsmc/connector.h"
 #include "hsmc/exception.h"
-#include "hsmc/svs/sinocipher/session_impl.h"
+#include "session_impl.h"
 
 namespace hsmc {
 namespace svs {

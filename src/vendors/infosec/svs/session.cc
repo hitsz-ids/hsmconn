@@ -20,6 +20,7 @@
 #include <utility>
 
 #include "hsmc/pooled_session_impl.h"
+#include "session_impl.h"
 #include "utils/uuid.h"
 
 namespace hsmc {

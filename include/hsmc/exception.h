@@ -64,7 +64,7 @@ inline const char *Exception::name() const noexcept {
   return "Exception";
 }
 
-#define HSMC_DECLARE_EXCEPTION_CODE(API, CLS, BASE, CODE)                                           \
+#define HSMC_DECLARE_EXCEPTION_CODE(API, CLS, BASE, CODE)                                            \
     class API CLS: public BASE                                                                       \
     {                                                                                                \
     public:                                                                                          \
@@ -72,10 +72,10 @@ inline const char *Exception::name() const noexcept {
         const char* name() const noexcept override;                                                  \
     };
 
-#define HSMC_DECLARE_EXCEPTION(API, CLS, BASE)                                                      \
+#define HSMC_DECLARE_EXCEPTION(API, CLS, BASE)                                                       \
     HSMC_DECLARE_EXCEPTION_CODE(API, CLS, BASE, 0)
 
-#define HSMC_IMPLEMENT_EXCEPTION(CLS, BASE, NAME)                                                   \
+#define HSMC_IMPLEMENT_EXCEPTION(CLS, BASE, NAME)                                                    \
     CLS::CLS(const std::string& msg, int code) noexcept(noexcept(std::runtime_error(msg)))           \
       : BASE(msg, code)                                                                              \
     {                                                                                                \

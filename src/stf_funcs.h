@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include "base.h"
-#include "stf.h"
+#include "hsmc/base.h"
+#include "hsmc/stf.h"
 
 namespace hsmc {
 

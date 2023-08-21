@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hsmc/svs/infosec/session_impl.h"
+#include "session_impl.h"
 
 #include <absl/strings/str_format.h>
 
 #include <utility>
 
-#include "hsmc/svs/infosec/connector.h"
+#include "connector.h"
 #include "utils/uuid.h"
 
 namespace hsmc {

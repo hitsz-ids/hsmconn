@@ -13,13 +13,10 @@
 // limitations under the License.
 
 #include "hsmc/svs/sinocipher/session.h"
-
 #include <absl/strings/str_format.h>
 
-#include <iostream>
-#include <utility>
-
 #include "hsmc/pooled_session_impl.h"
+#include "session_impl.h"
 #include "utils/uuid.h"
 
 namespace hsmc {

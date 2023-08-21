@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include "hsmc/connector.h"
+#include "sdf_funcs.h"
+#include "stf_funcs.h"
 
 #include <absl/strings/str_format.h>
 
@@ -63,6 +65,10 @@ void Connector::open() {
 
   // reset errors
   dlerror();
+
+  // allocate context
+  setSDFContext(std::make_shared<SDFFuncs>());
+  setSTFContext(std::make_shared<STFFuncs>());
 
   if (connType_ == ConnectorType::CT_HSM) {
     resolveSdfFuncs();
@@ -122,56 +128,75 @@ void Connector::elapsed(const std::string& fn, uint64_t macroseconds) {
 #endif
 }
 
+void Connector::setSDFContext(const std::shared_ptr<void>& p) {
+  sdf_ = p;
+}
+
+void Connector::setSTFContext(const std::shared_ptr<void>& p) {
+  stf_ = p;
+}
+
+template<typename T>
+auto Connector::getSDFContext() const {
+  return std::static_pointer_cast<T>(sdf_);
+}
+
+template<typename T>
+auto Connector::getSTFContext() const {
+  return std::static_pointer_cast<T>(stf_);
+}
+
 void Connector::resolveSdfFuncs() {
-  sdf_.SDF_OpenDevice_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_OpenDevice);
-  sdf_.SDF_CloseDevice_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_CloseDevice);
-  sdf_.SDF_OpenSession_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_OpenSession);
-  sdf_.SDF_CloseSession_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_CloseSession);
-  sdf_.SDF_GetDeviceInfo_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GetDeviceInfo);
-  sdf_.SDF_GenerateRandom_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateRandom);
-  sdf_.SDF_GetPrivateKeyAccessRight_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GetPrivateKeyAccessRight);
-  sdf_.SDF_ReleasePrivateKeyAccessRight_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ReleasePrivateKeyAccessRight);
-  sdf_.SDF_ExportSignPublicKey_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExportSignPublicKey_RSA);
-  sdf_.SDF_ExportEncPublicKey_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExportEncPublicKey_RSA);
-  sdf_.SDF_GenerateKeyPair_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyPair_RSA);
-  sdf_.SDF_GenerateKeyWithIPK_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyWithIPK_RSA);
-  sdf_.SDF_GenerateKeyWithEPK_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyWithEPK_RSA);
-  sdf_.SDF_ImportKeyWithISK_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ImportKeyWithISK_RSA);
-  sdf_.SDF_ExchangeDigitEnvelopeBaseOnRSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExchangeDigitEnvelopeBaseOnRSA);
-  sdf_.SDF_ExportSignPublicKey_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExportSignPublicKey_ECC);
-  sdf_.SDF_ExportEncPublicKey_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExportEncPublicKey_ECC);
-  sdf_.SDF_GenerateKeyPair_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyPair_ECC);
-  sdf_.SDF_GenerateKeyWithIPK_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyWithIPK_ECC);
-  sdf_.SDF_GenerateKeyWithEPK_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyWithEPK_ECC);
-  sdf_.SDF_ImportKeyWithISK_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ImportKeyWithISK_ECC);
-  sdf_.SDF_GenerateAgreementDataWithECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateAgreementDataWithECC);
-  sdf_.SDF_GenerateKeyWithECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyWithECC);
-  sdf_.SDF_GenerateAgreementDataAndKeyWithECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateAgreementDataAndKeyWithECC);
-  sdf_.SDF_ExchangeDigitEnvelopeBaseOnECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExchangeDigitEnvelopeBaseOnECC);
-  sdf_.SDF_GenerateKeyWithKEK_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyWithKEK);
-  sdf_.SDF_ImportKeyWithKEK_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ImportKeyWithKEK);
-  sdf_.SDF_ImportKey_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ImportKey);
-  sdf_.SDF_DestroyKey_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_DestroyKey);
-  sdf_.SDF_ExternalPublicKeyOperation_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExternalPublicKeyOperation_RSA);
-  sdf_.SDF_InternalPublicKeyOperation_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_InternalPublicKeyOperation_RSA);
-  sdf_.SDF_InternalPrivateKeyOperation_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_InternalPrivateKeyOperation_RSA);
-  sdf_.SDF_ExternalPrivateKeyOperation_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExternalPrivateKeyOperation_RSA);
-  sdf_.SDF_ExternalSign_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExternalSign_ECC);
-  sdf_.SDF_ExternalVerify_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExternalVerify_ECC);
-  sdf_.SDF_InternalSign_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_InternalSign_ECC);
-  sdf_.SDF_InternalVerify_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_InternalVerify_ECC);
-  sdf_.SDF_ExternalEncrypt_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExternalEncrypt_ECC);
-  sdf_.SDF_ExternalDecrypt_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExternalDecrypt_ECC);
-  sdf_.SDF_Encrypt_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_Encrypt);
-  sdf_.SDF_Decrypt_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_Decrypt);
-  sdf_.SDF_CalculateMAC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_CalculateMAC);
-  sdf_.SDF_HashInit_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_HashInit);
-  sdf_.SDF_HashUpdate_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_HashUpdate);
-  sdf_.SDF_HashFinal_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_HashFinal);
-  sdf_.SDF_CreateFile_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_CreateFile);
-  sdf_.SDF_ReadFile_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ReadFile);
-  sdf_.SDF_WriteFile_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_WriteFile);
-  sdf_.SDF_DeleteFile_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_DeleteFile);
+  auto sdfCxt = getSDFContext<SDFFuncs>();
+  sdfCxt->SDF_OpenDevice_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_OpenDevice);
+  sdfCxt->SDF_CloseDevice_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_CloseDevice);
+  sdfCxt->SDF_OpenSession_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_OpenSession);
+  sdfCxt->SDF_CloseSession_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_CloseSession);
+  sdfCxt->SDF_GetDeviceInfo_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GetDeviceInfo);
+  sdfCxt->SDF_GenerateRandom_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateRandom);
+  sdfCxt->SDF_GetPrivateKeyAccessRight_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GetPrivateKeyAccessRight);
+  sdfCxt->SDF_ReleasePrivateKeyAccessRight_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ReleasePrivateKeyAccessRight);
+  sdfCxt->SDF_ExportSignPublicKey_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExportSignPublicKey_RSA);
+  sdfCxt->SDF_ExportEncPublicKey_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExportEncPublicKey_RSA);
+  sdfCxt->SDF_GenerateKeyPair_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyPair_RSA);
+  sdfCxt->SDF_GenerateKeyWithIPK_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyWithIPK_RSA);
+  sdfCxt->SDF_GenerateKeyWithEPK_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyWithEPK_RSA);
+  sdfCxt->SDF_ImportKeyWithISK_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ImportKeyWithISK_RSA);
+  sdfCxt->SDF_ExchangeDigitEnvelopeBaseOnRSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExchangeDigitEnvelopeBaseOnRSA);
+  sdfCxt->SDF_ExportSignPublicKey_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExportSignPublicKey_ECC);
+  sdfCxt->SDF_ExportEncPublicKey_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExportEncPublicKey_ECC);
+  sdfCxt->SDF_GenerateKeyPair_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyPair_ECC);
+  sdfCxt->SDF_GenerateKeyWithIPK_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyWithIPK_ECC);
+  sdfCxt->SDF_GenerateKeyWithEPK_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyWithEPK_ECC);
+  sdfCxt->SDF_ImportKeyWithISK_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ImportKeyWithISK_ECC);
+  sdfCxt->SDF_GenerateAgreementDataWithECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateAgreementDataWithECC);
+  sdfCxt->SDF_GenerateKeyWithECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyWithECC);
+  sdfCxt->SDF_GenerateAgreementDataAndKeyWithECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateAgreementDataAndKeyWithECC);
+  sdfCxt->SDF_ExchangeDigitEnvelopeBaseOnECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExchangeDigitEnvelopeBaseOnECC);
+  sdfCxt->SDF_GenerateKeyWithKEK_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_GenerateKeyWithKEK);
+  sdfCxt->SDF_ImportKeyWithKEK_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ImportKeyWithKEK);
+  sdfCxt->SDF_ImportKey_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ImportKey);
+  sdfCxt->SDF_DestroyKey_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_DestroyKey);
+  sdfCxt->SDF_ExternalPublicKeyOperation_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExternalPublicKeyOperation_RSA);
+  sdfCxt->SDF_InternalPublicKeyOperation_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_InternalPublicKeyOperation_RSA);
+  sdfCxt->SDF_InternalPrivateKeyOperation_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_InternalPrivateKeyOperation_RSA);
+  sdfCxt->SDF_ExternalPrivateKeyOperation_RSA_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExternalPrivateKeyOperation_RSA);
+  sdfCxt->SDF_ExternalSign_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExternalSign_ECC);
+  sdfCxt->SDF_ExternalVerify_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExternalVerify_ECC);
+  sdfCxt->SDF_InternalSign_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_InternalSign_ECC);
+  sdfCxt->SDF_InternalVerify_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_InternalVerify_ECC);
+  sdfCxt->SDF_ExternalEncrypt_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExternalEncrypt_ECC);
+  sdfCxt->SDF_ExternalDecrypt_ECC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ExternalDecrypt_ECC);
+  sdfCxt->SDF_Encrypt_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_Encrypt);
+  sdfCxt->SDF_Decrypt_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_Decrypt);
+  sdfCxt->SDF_CalculateMAC_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_CalculateMAC);
+  sdfCxt->SDF_HashInit_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_HashInit);
+  sdfCxt->SDF_HashUpdate_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_HashUpdate);
+  sdfCxt->SDF_HashFinal_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_HashFinal);
+  sdfCxt->SDF_CreateFile_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_CreateFile);
+  sdfCxt->SDF_ReadFile_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_ReadFile);
+  sdfCxt->SDF_WriteFile_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_WriteFile);
+  sdfCxt->SDF_DeleteFile_ = INSTRUMENTED_FUNC_INITIALIZER(SDF_DeleteFile);
 }
 
 void Connector::resolveSvsFuncs() {
@@ -182,13 +207,14 @@ void Connector::resolveSvsFuncs() {
 }
 
 void Connector::resolveStfFuncs() {
-  stf_.STF_InitEnvironment_ = FUNC_INITIALIZER(STF_InitEnvironment);
-  stf_.STF_ClearEnvironment_ = FUNC_INITIALIZER(STF_ClearEnvironment);
-  stf_.STF_CreateTSRequest_ = FUNC_INITIALIZER(STF_CreateTSRequest);
-  stf_.STF_CreateTSResponse_ = FUNC_INITIALIZER(STF_CreateTSResponse);
-  stf_.STF_VerifyTSValidity_ = FUNC_INITIALIZER(STF_VerifyTSValidity);
-  stf_.STF_GetTSInfo_ = FUNC_INITIALIZER(STF_GetTSInfo);
-  stf_.STF_GetTSDetail_ = FUNC_INITIALIZER(STF_GetTSDetail);
+  auto stfCxt = getSTFContext<STFFuncs>();
+  stfCxt->STF_InitEnvironment_ = FUNC_INITIALIZER(STF_InitEnvironment);
+  stfCxt->STF_ClearEnvironment_ = FUNC_INITIALIZER(STF_ClearEnvironment);
+  stfCxt->STF_CreateTSRequest_ = FUNC_INITIALIZER(STF_CreateTSRequest);
+  stfCxt->STF_CreateTSResponse_ = FUNC_INITIALIZER(STF_CreateTSResponse);
+  stfCxt->STF_VerifyTSValidity_ = FUNC_INITIALIZER(STF_VerifyTSValidity);
+  stfCxt->STF_GetTSInfo_ = FUNC_INITIALIZER(STF_GetTSInfo);
+  stfCxt->STF_GetTSDetail_ = FUNC_INITIALIZER(STF_GetTSDetail);
 }
 
 void Connector::setConfig(const std::string &configfile) {
@@ -285,7 +311,7 @@ void Connector::setIdleTimeout(int timeout) {
 
 int Connector::SDF_OpenDevice(void **phDeviceHandle) {
   try {
-    return sdf_.SDF_OpenDevice_(phDeviceHandle);
+    return getSDFContext<SDFFuncs>()->SDF_OpenDevice_(phDeviceHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -293,7 +319,7 @@ int Connector::SDF_OpenDevice(void **phDeviceHandle) {
 
 int Connector::SDF_CloseDevice(void *hDeviceHandle) {
   try {
-    return sdf_.SDF_CloseDevice_(hDeviceHandle);
+    return getSDFContext<SDFFuncs>()->SDF_CloseDevice_(hDeviceHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -301,7 +327,7 @@ int Connector::SDF_CloseDevice(void *hDeviceHandle) {
 
 int Connector::SDF_OpenSession(void *hDeviceHandle, void **phSessionHandle) {
   try {
-    return sdf_.SDF_OpenSession_(hDeviceHandle, phSessionHandle);
+    return getSDFContext<SDFFuncs>()->SDF_OpenSession_(hDeviceHandle, phSessionHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -309,7 +335,7 @@ int Connector::SDF_OpenSession(void *hDeviceHandle, void **phSessionHandle) {
 
 int Connector::SDF_CloseSession(void *hSessionHandle) {
   try {
-    return sdf_.SDF_CloseSession_(hSessionHandle);
+    return getSDFContext<SDFFuncs>()->SDF_CloseSession_(hSessionHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -317,7 +343,7 @@ int Connector::SDF_CloseSession(void *hSessionHandle) {
 
 int Connector::SDF_GetDeviceInfo(void *hSessionHandle, DEVICEINFO *pstDeviceInfo) const {
   try {
-    return sdf_.SDF_GetDeviceInfo_(hSessionHandle, pstDeviceInfo);
+    return getSDFContext<SDFFuncs>()->SDF_GetDeviceInfo_(hSessionHandle, pstDeviceInfo);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -325,7 +351,7 @@ int Connector::SDF_GetDeviceInfo(void *hSessionHandle, DEVICEINFO *pstDeviceInfo
 
 int Connector::SDF_GenerateRandom(void *hSessionHandle, unsigned int uiLength, unsigned char *pucRandom) const {
   try {
-    return sdf_.SDF_GenerateRandom_(hSessionHandle, uiLength, pucRandom);
+    return getSDFContext<SDFFuncs>()->SDF_GenerateRandom_(hSessionHandle, uiLength, pucRandom);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -334,7 +360,7 @@ int Connector::SDF_GenerateRandom(void *hSessionHandle, unsigned int uiLength, u
 int Connector::SDF_GetPrivateKeyAccessRight(void *hSessionHandle, unsigned int uiKeyIndex, unsigned char *pucPassword,
                                             unsigned int uiPwdLength) const {
   try {
-    return sdf_.SDF_GetPrivateKeyAccessRight_(hSessionHandle, uiKeyIndex, pucPassword, uiPwdLength);
+    return getSDFContext<SDFFuncs>()->SDF_GetPrivateKeyAccessRight_(hSessionHandle, uiKeyIndex, pucPassword, uiPwdLength);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -342,7 +368,7 @@ int Connector::SDF_GetPrivateKeyAccessRight(void *hSessionHandle, unsigned int u
 
 int Connector::SDF_ReleasePrivateKeyAccessRight(void *hSessionHandle, unsigned int uiKeyIndex) const {
   try {
-    return sdf_.SDF_ReleasePrivateKeyAccessRight_(hSessionHandle, uiKeyIndex);
+    return getSDFContext<SDFFuncs>()->SDF_ReleasePrivateKeyAccessRight_(hSessionHandle, uiKeyIndex);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -351,7 +377,7 @@ int Connector::SDF_ReleasePrivateKeyAccessRight(void *hSessionHandle, unsigned i
 int Connector::SDF_ExportSignPublicKey_RSA(void *hSessionHandle, unsigned int uiKeyIndex,
                                            RSArefPublicKey *pucPublicKey) const {
   try {
-    return sdf_.SDF_ExportSignPublicKey_RSA_(hSessionHandle, uiKeyIndex, pucPublicKey);
+    return getSDFContext<SDFFuncs>()->SDF_ExportSignPublicKey_RSA_(hSessionHandle, uiKeyIndex, pucPublicKey);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -360,7 +386,7 @@ int Connector::SDF_ExportSignPublicKey_RSA(void *hSessionHandle, unsigned int ui
 int Connector::SDF_ExportEncPublicKey_RSA(void *hSessionHandle, unsigned int uiKeyIndex,
                                           RSArefPublicKey *pucPublicKey) const {
   try {
-    return sdf_.SDF_ExportEncPublicKey_RSA_(hSessionHandle, uiKeyIndex, pucPublicKey);
+    return getSDFContext<SDFFuncs>()->SDF_ExportEncPublicKey_RSA_(hSessionHandle, uiKeyIndex, pucPublicKey);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -369,7 +395,7 @@ int Connector::SDF_ExportEncPublicKey_RSA(void *hSessionHandle, unsigned int uiK
 int Connector::SDF_GenerateKeyPair_RSA(void *hSessionHandle, unsigned int uiKeyBits, RSArefPublicKey *pucPublicKey,
                                        RSArefPrivateKey *pucPrivateKey) const {
   try {
-    return sdf_.SDF_GenerateKeyPair_RSA_(hSessionHandle, uiKeyBits, pucPublicKey, pucPrivateKey);
+    return getSDFContext<SDFFuncs>()->SDF_GenerateKeyPair_RSA_(hSessionHandle, uiKeyBits, pucPublicKey, pucPrivateKey);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -378,7 +404,7 @@ int Connector::SDF_GenerateKeyPair_RSA(void *hSessionHandle, unsigned int uiKeyB
 int Connector::SDF_GenerateKeyWithIPK_RSA(void *hSessionHandle, unsigned int uiIPKIndex, unsigned int uiKeyBits,
                                           unsigned char *pucKey, unsigned int *puiKeyLength, void **phKeyHandle) const {
   try {
-    return sdf_.SDF_GenerateKeyWithIPK_RSA_(hSessionHandle, uiIPKIndex, uiKeyBits, pucKey, puiKeyLength, phKeyHandle);
+    return getSDFContext<SDFFuncs>()->SDF_GenerateKeyWithIPK_RSA_(hSessionHandle, uiIPKIndex, uiKeyBits, pucKey, puiKeyLength, phKeyHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -387,7 +413,7 @@ int Connector::SDF_GenerateKeyWithIPK_RSA(void *hSessionHandle, unsigned int uiI
 int Connector::SDF_GenerateKeyWithEPK_RSA(void *hSessionHandle, unsigned int uiKeyBits, RSArefPublicKey *pucPublicKey,
                                           unsigned char *pucKey, unsigned int *puiKeyLength, void **phKeyHandle) const {
   try {
-    return sdf_.SDF_GenerateKeyWithEPK_RSA_(hSessionHandle, uiKeyBits, pucPublicKey, pucKey, puiKeyLength, phKeyHandle);
+    return getSDFContext<SDFFuncs>()->SDF_GenerateKeyWithEPK_RSA_(hSessionHandle, uiKeyBits, pucPublicKey, pucKey, puiKeyLength, phKeyHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -396,7 +422,7 @@ int Connector::SDF_GenerateKeyWithEPK_RSA(void *hSessionHandle, unsigned int uiK
 int Connector::SDF_ImportKeyWithISK_RSA(void *hSessionHandle, unsigned int uiISKIndex, unsigned char *pucKey,
                                         unsigned int uiKeyLength, void **phKeyHandle) const {
   try {
-    return sdf_.SDF_ImportKeyWithISK_RSA_(hSessionHandle, uiISKIndex, pucKey, uiKeyLength, phKeyHandle);
+    return getSDFContext<SDFFuncs>()->SDF_ImportKeyWithISK_RSA_(hSessionHandle, uiISKIndex, pucKey, uiKeyLength, phKeyHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -407,7 +433,7 @@ int Connector::SDF_ExchangeDigitEnvelopeBaseOnRSA(void *hSessionHandle, unsigned
                                                   unsigned int uiDELength, unsigned char *pucDEOutput,
                                                   unsigned int *puiDELength) const {
   try {
-    return sdf_.SDF_ExchangeDigitEnvelopeBaseOnRSA_(hSessionHandle, uiKeyIndex, pucPublicKey, pucDEInput, uiDELength,
+    return getSDFContext<SDFFuncs>()->SDF_ExchangeDigitEnvelopeBaseOnRSA_(hSessionHandle, uiKeyIndex, pucPublicKey, pucDEInput, uiDELength,
                                                     pucDEOutput, puiDELength);
   } catch (...) {
     return SDR_NOTSUPPORT;
@@ -417,7 +443,7 @@ int Connector::SDF_ExchangeDigitEnvelopeBaseOnRSA(void *hSessionHandle, unsigned
 int Connector::SDF_ExportSignPublicKey_ECC(void *hSessionHandle, unsigned int uiKeyIndex,
                                            ECCrefPublicKey *pucPublicKey) const {
   try {
-    return sdf_.SDF_ExportSignPublicKey_ECC_(hSessionHandle, uiKeyIndex, pucPublicKey);
+    return getSDFContext<SDFFuncs>()->SDF_ExportSignPublicKey_ECC_(hSessionHandle, uiKeyIndex, pucPublicKey);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -426,7 +452,7 @@ int Connector::SDF_ExportSignPublicKey_ECC(void *hSessionHandle, unsigned int ui
 int Connector::SDF_ExportEncPublicKey_ECC(void *hSessionHandle, unsigned int uiKeyIndex,
                                           ECCrefPublicKey *pucPublicKey) const {
   try {
-    return sdf_.SDF_ExportEncPublicKey_ECC_(hSessionHandle, uiKeyIndex, pucPublicKey);
+    return getSDFContext<SDFFuncs>()->SDF_ExportEncPublicKey_ECC_(hSessionHandle, uiKeyIndex, pucPublicKey);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -435,7 +461,7 @@ int Connector::SDF_ExportEncPublicKey_ECC(void *hSessionHandle, unsigned int uiK
 int Connector::SDF_GenerateKeyPair_ECC(void *hSessionHandle, unsigned int uiAlgID, unsigned int uiKeyBits,
                                        ECCrefPublicKey *pucPublicKey, ECCrefPrivateKey *pucPrivateKey) const {
   try {
-    return sdf_.SDF_GenerateKeyPair_ECC_(hSessionHandle, uiAlgID, uiKeyBits, pucPublicKey, pucPrivateKey);
+    return getSDFContext<SDFFuncs>()->SDF_GenerateKeyPair_ECC_(hSessionHandle, uiAlgID, uiKeyBits, pucPublicKey, pucPrivateKey);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -444,7 +470,7 @@ int Connector::SDF_GenerateKeyPair_ECC(void *hSessionHandle, unsigned int uiAlgI
 int Connector::SDF_GenerateKeyWithIPK_ECC(void *hSessionHandle, unsigned int uiIPKIndex, unsigned int uiKeyBits,
                                           ECCCipher *pucKey, void **phKeyHandle) const {
   try {
-    return sdf_.SDF_GenerateKeyWithIPK_ECC_(hSessionHandle, uiIPKIndex, uiKeyBits, pucKey, phKeyHandle);
+    return getSDFContext<SDFFuncs>()->SDF_GenerateKeyWithIPK_ECC_(hSessionHandle, uiIPKIndex, uiKeyBits, pucKey, phKeyHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -453,7 +479,7 @@ int Connector::SDF_GenerateKeyWithIPK_ECC(void *hSessionHandle, unsigned int uiI
 int Connector::SDF_GenerateKeyWithEPK_ECC(void *hSessionHandle, unsigned int uiKeyBits, unsigned int uiAlgID,
                                           ECCrefPublicKey *pucPublicKey, ECCCipher *pucKey, void **phKeyHandle) const {
   try {
-    return sdf_.SDF_GenerateKeyWithEPK_ECC_(hSessionHandle, uiKeyBits, uiAlgID, pucPublicKey, pucKey, phKeyHandle);
+    return getSDFContext<SDFFuncs>()->SDF_GenerateKeyWithEPK_ECC_(hSessionHandle, uiKeyBits, uiAlgID, pucPublicKey, pucKey, phKeyHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -462,7 +488,7 @@ int Connector::SDF_GenerateKeyWithEPK_ECC(void *hSessionHandle, unsigned int uiK
 int Connector::SDF_ImportKeyWithISK_ECC(void *hSessionHandle, unsigned int uiISKIndex, ECCCipher *pucKey,
                                         void **phKeyHandle) const {
   try {
-    return sdf_.SDF_ImportKeyWithISK_ECC_(hSessionHandle, uiISKIndex, pucKey, phKeyHandle);
+    return getSDFContext<SDFFuncs>()->SDF_ImportKeyWithISK_ECC_(hSessionHandle, uiISKIndex, pucKey, phKeyHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -474,7 +500,7 @@ int Connector::SDF_GenerateAgreementDataWithECC(void *hSessionHandle, unsigned i
                                                 ECCrefPublicKey *pucSponsorTmpPublicKey,
                                                 void **phAgreementHandle) const {
   try {
-    return sdf_.SDF_GenerateAgreementDataWithECC_(hSessionHandle, uiISKIndex, uiKeyBits, pucSponsorID,
+    return getSDFContext<SDFFuncs>()->SDF_GenerateAgreementDataWithECC_(hSessionHandle, uiISKIndex, uiKeyBits, pucSponsorID,
                                                   uiSponsorIDLength, pucSponsorPublicKey, pucSponsorTmpPublicKey,
                                                   phAgreementHandle);
   } catch (...) {
@@ -487,7 +513,7 @@ int Connector::SDF_GenerateKeyWithECC(void *hSessionHandle, unsigned char *pucRe
                                       ECCrefPublicKey *pucResponseTmpPublicKey, void *hAgreementHandle,
                                       void **phKeyHandle) const {
   try {
-    return sdf_.SDF_GenerateKeyWithECC_(hSessionHandle, pucResponseID, uiResponseIDLength, pucResponsePublicKey,
+    return getSDFContext<SDFFuncs>()->SDF_GenerateKeyWithECC_(hSessionHandle, pucResponseID, uiResponseIDLength, pucResponsePublicKey,
                                         pucResponseTmpPublicKey, hAgreementHandle, phKeyHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
@@ -500,7 +526,7 @@ int Connector::SDF_GenerateAgreementDataAndKeyWithECC(
     ECCrefPublicKey *pucSponsorPublicKey, ECCrefPublicKey *pucSponsorTmpPublicKey,
     ECCrefPublicKey *pucResponsePublicKey, ECCrefPublicKey *pucResponseTmpPublicKey, void **phKeyHandle) const {
   try {
-    return sdf_.SDF_GenerateAgreementDataAndKeyWithECC_(
+    return getSDFContext<SDFFuncs>()->SDF_GenerateAgreementDataAndKeyWithECC_(
         hSessionHandle, uiISKIndex, uiKeyBits, pucResponseID, uiResponseIDLength, pucSponsorID, uiSponsorIDLength,
         pucSponsorPublicKey, pucSponsorTmpPublicKey, pucResponsePublicKey, pucResponseTmpPublicKey, phKeyHandle);
   } catch (...) {
@@ -512,7 +538,7 @@ int Connector::SDF_ExchangeDigitEnvelopeBaseOnECC(void *hSessionHandle, unsigned
                                                   ECCrefPublicKey *pucPublicKey, ECCCipher *pucEncDataIn,
                                                   ECCCipher *pucEncDataOut) const {
   try {
-    return sdf_.SDF_ExchangeDigitEnvelopeBaseOnECC_(hSessionHandle, uiKeyIndex, uiAlgID, pucPublicKey, pucEncDataIn,
+    return getSDFContext<SDFFuncs>()->SDF_ExchangeDigitEnvelopeBaseOnECC_(hSessionHandle, uiKeyIndex, uiAlgID, pucPublicKey, pucEncDataIn,
                                                     pucEncDataOut);
   } catch (...) {
     return SDR_NOTSUPPORT;
@@ -523,7 +549,7 @@ int Connector::SDF_GenerateKeyWithKEK(void *hSessionHandle, unsigned int uiKeyBi
                                       unsigned int uiKEKIndex, unsigned char *pucKey, unsigned int *puiKeyLength,
                                       void **phKeyHandle) const {
   try {
-    return sdf_.SDF_GenerateKeyWithKEK_(hSessionHandle, uiKeyBits, uiAlgID, uiKEKIndex, pucKey, puiKeyLength,
+    return getSDFContext<SDFFuncs>()->SDF_GenerateKeyWithKEK_(hSessionHandle, uiKeyBits, uiAlgID, uiKEKIndex, pucKey, puiKeyLength,
                                         phKeyHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
@@ -533,7 +559,7 @@ int Connector::SDF_GenerateKeyWithKEK(void *hSessionHandle, unsigned int uiKeyBi
 int Connector::SDF_ImportKeyWithKEK(void *hSessionHandle, unsigned int uiAlgID, unsigned int uiKEKIndex,
                                     unsigned char *pucKey, unsigned int uiKeyLength, void **phKeyHandle) const {
   try {
-    return sdf_.SDF_ImportKeyWithKEK_(hSessionHandle, uiAlgID, uiKEKIndex, pucKey, uiKeyLength, phKeyHandle);
+    return getSDFContext<SDFFuncs>()->SDF_ImportKeyWithKEK_(hSessionHandle, uiAlgID, uiKEKIndex, pucKey, uiKeyLength, phKeyHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -542,7 +568,7 @@ int Connector::SDF_ImportKeyWithKEK(void *hSessionHandle, unsigned int uiAlgID, 
 int Connector::SDF_ImportKey(void *hSessionHandle, unsigned char *pucKey, unsigned int uiKeyLength,
                              void **phKeyHandle) const {
   try {
-    return sdf_.SDF_ImportKey_(hSessionHandle, pucKey, uiKeyLength, phKeyHandle);
+    return getSDFContext<SDFFuncs>()->SDF_ImportKey_(hSessionHandle, pucKey, uiKeyLength, phKeyHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -550,7 +576,7 @@ int Connector::SDF_ImportKey(void *hSessionHandle, unsigned char *pucKey, unsign
 
 int Connector::SDF_DestroyKey(void *hSessionHandle, void *hKeyHandle) const {
   try {
-    return sdf_.SDF_DestroyKey_(hSessionHandle, hKeyHandle);
+    return getSDFContext<SDFFuncs>()->SDF_DestroyKey_(hSessionHandle, hKeyHandle);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -560,7 +586,7 @@ int Connector::SDF_ExternalPublicKeyOperation_RSA(void *hSessionHandle, RSArefPu
                                                   unsigned char *pucDataInput, unsigned int uiInputLength,
                                                   unsigned char *pucDataOutput, unsigned int *puiOutputLength) const {
   try {
-    return sdf_.SDF_ExternalPublicKeyOperation_RSA_(hSessionHandle, pucPublicKey, pucDataInput, uiInputLength,
+    return getSDFContext<SDFFuncs>()->SDF_ExternalPublicKeyOperation_RSA_(hSessionHandle, pucPublicKey, pucDataInput, uiInputLength,
                                                     pucDataOutput, puiOutputLength);
   } catch (...) {
     return SDR_NOTSUPPORT;
@@ -571,7 +597,7 @@ int Connector::SDF_InternalPublicKeyOperation_RSA(void *hSessionHandle, unsigned
                                                   unsigned char *pucDataInput, unsigned int uiInputLength,
                                                   unsigned char *pucDataOutput, unsigned int *puiOutputLength) const {
   try {
-    return sdf_.SDF_InternalPublicKeyOperation_RSA_(hSessionHandle, uiKeyIndex, pucDataInput, uiInputLength,
+    return getSDFContext<SDFFuncs>()->SDF_InternalPublicKeyOperation_RSA_(hSessionHandle, uiKeyIndex, pucDataInput, uiInputLength,
                                                     pucDataOutput, puiOutputLength);
   } catch (...) {
     return SDR_NOTSUPPORT;
@@ -582,7 +608,7 @@ int Connector::SDF_InternalPrivateKeyOperation_RSA(void *hSessionHandle, unsigne
                                                    unsigned char *pucDataInput, unsigned int uiInputLength,
                                                    unsigned char *pucDataOutput, unsigned int *puiOutputLength) const {
   try {
-    return sdf_.SDF_InternalPrivateKeyOperation_RSA_(hSessionHandle, uiKeyIndex, pucDataInput, uiInputLength,
+    return getSDFContext<SDFFuncs>()->SDF_InternalPrivateKeyOperation_RSA_(hSessionHandle, uiKeyIndex, pucDataInput, uiInputLength,
                                                      pucDataOutput, puiOutputLength);
   } catch (...) {
     return SDR_NOTSUPPORT;
@@ -593,7 +619,7 @@ int Connector::SDF_ExternalPrivateKeyOperation_RSA(void *hSessionHandle, RSArefP
                                                    unsigned char *pucDataInput, unsigned int uiInputLength,
                                                    unsigned char *pucDataOutput, unsigned int *puiOutputLength) const {
   try {
-    return sdf_.SDF_ExternalPrivateKeyOperation_RSA_(hSessionHandle, pucPrivateKey, pucDataInput, uiInputLength,
+    return getSDFContext<SDFFuncs>()->SDF_ExternalPrivateKeyOperation_RSA_(hSessionHandle, pucPrivateKey, pucDataInput, uiInputLength,
                                                      pucDataOutput, puiOutputLength);
   } catch (...) {
     return SDR_NOTSUPPORT;
@@ -604,7 +630,7 @@ int Connector::SDF_ExternalSign_ECC(void *hSessionHandle, unsigned int uiAlgID, 
                                     unsigned char *pucData, unsigned int uiDataLength,
                                     ECCSignature *pucSignature) const {
   try {
-    return sdf_.SDF_ExternalSign_ECC_(hSessionHandle, uiAlgID, pucPrivateKey, pucData, uiDataLength, pucSignature);
+    return getSDFContext<SDFFuncs>()->SDF_ExternalSign_ECC_(hSessionHandle, uiAlgID, pucPrivateKey, pucData, uiDataLength, pucSignature);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -614,7 +640,7 @@ int Connector::SDF_ExternalVerify_ECC(void *hSessionHandle, unsigned int uiAlgID
                                       unsigned char *pucDataInput, unsigned int uiInputLength,
                                       ECCSignature *pucSignature) const {
   try {
-    return sdf_.SDF_ExternalVerify_ECC_(hSessionHandle, uiAlgID, pucPublicKey, pucDataInput, uiInputLength,
+    return getSDFContext<SDFFuncs>()->SDF_ExternalVerify_ECC_(hSessionHandle, uiAlgID, pucPublicKey, pucDataInput, uiInputLength,
                                         pucSignature);
   } catch (...) {
     return SDR_NOTSUPPORT;
@@ -624,7 +650,7 @@ int Connector::SDF_ExternalVerify_ECC(void *hSessionHandle, unsigned int uiAlgID
 int Connector::SDF_InternalSign_ECC(void *hSessionHandle, unsigned int uiISKIndex, unsigned char *pucData,
                                     unsigned int uiDataLength, ECCSignature *pucSignature) const {
   try {
-    return sdf_.SDF_InternalSign_ECC_(hSessionHandle, uiISKIndex, pucData, uiDataLength, pucSignature);
+    return getSDFContext<SDFFuncs>()->SDF_InternalSign_ECC_(hSessionHandle, uiISKIndex, pucData, uiDataLength, pucSignature);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -633,7 +659,7 @@ int Connector::SDF_InternalSign_ECC(void *hSessionHandle, unsigned int uiISKInde
 int Connector::SDF_InternalVerify_ECC(void *hSessionHandle, unsigned int uiIPKIndex, unsigned char *pucData,
                                       unsigned int uiDataLength, ECCSignature *pucSignature) const {
   try {
-    return sdf_.SDF_InternalVerify_ECC_(hSessionHandle, uiIPKIndex, pucData, uiDataLength, pucSignature);
+    return getSDFContext<SDFFuncs>()->SDF_InternalVerify_ECC_(hSessionHandle, uiIPKIndex, pucData, uiDataLength, pucSignature);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -642,7 +668,7 @@ int Connector::SDF_InternalVerify_ECC(void *hSessionHandle, unsigned int uiIPKIn
 int Connector::SDF_ExternalEncrypt_ECC(void *hSessionHandle, unsigned int uiAlgID, ECCrefPublicKey *pucPublicKey,
                                        unsigned char *pucData, unsigned int uiDataLength, ECCCipher *pucEncData) const {
   try {
-    return sdf_.SDF_ExternalEncrypt_ECC_(hSessionHandle, uiAlgID, pucPublicKey, pucData, uiDataLength, pucEncData);
+    return getSDFContext<SDFFuncs>()->SDF_ExternalEncrypt_ECC_(hSessionHandle, uiAlgID, pucPublicKey, pucData, uiDataLength, pucEncData);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -652,7 +678,7 @@ int Connector::SDF_ExternalDecrypt_ECC(void *hSessionHandle, unsigned int uiAlgI
                                        ECCCipher *pucEncData, unsigned char *pucData,
                                        unsigned int *puiDataLength) const {
   try {
-    return sdf_.SDF_ExternalDecrypt_ECC_(hSessionHandle, uiAlgID, pucPrivateKey, pucEncData, pucData, puiDataLength);
+    return getSDFContext<SDFFuncs>()->SDF_ExternalDecrypt_ECC_(hSessionHandle, uiAlgID, pucPrivateKey, pucEncData, pucData, puiDataLength);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -662,7 +688,7 @@ int Connector::SDF_Encrypt(void *hSessionHandle, void *hKeyHandle, unsigned int 
                            unsigned char *pucData, unsigned int uiDataLength, unsigned char *pucEncData,
                            unsigned int *puiEncDataLength) const {
   try {
-    return sdf_.SDF_Encrypt_(hSessionHandle, hKeyHandle, uiAlgID, pucIV, pucData, uiDataLength, pucEncData,
+    return getSDFContext<SDFFuncs>()->SDF_Encrypt_(hSessionHandle, hKeyHandle, uiAlgID, pucIV, pucData, uiDataLength, pucEncData,
                              puiEncDataLength);
   } catch (...) {
     return SDR_NOTSUPPORT;
@@ -673,7 +699,7 @@ int Connector::SDF_Decrypt(void *hSessionHandle, void *hKeyHandle, unsigned int 
                            unsigned char *pucEncData, unsigned int uiEncDataLength, unsigned char *pucData,
                            unsigned int *puiDataLength) const {
   try {
-    return sdf_.SDF_Decrypt_(hSessionHandle, hKeyHandle, uiAlgID, pucIV, pucEncData, uiEncDataLength, pucData,
+    return getSDFContext<SDFFuncs>()->SDF_Decrypt_(hSessionHandle, hKeyHandle, uiAlgID, pucIV, pucEncData, uiEncDataLength, pucData,
                              puiDataLength);
   } catch (...) {
     return SDR_NOTSUPPORT;
@@ -684,7 +710,7 @@ int Connector::SDF_CalculateMAC(void *hSessionHandle, void *hKeyHandle, unsigned
                                 unsigned char *pucData, unsigned int uiDataLength, unsigned char *pucMAC,
                                 unsigned int *puiMACLength) const {
   try {
-    return sdf_.SDF_CalculateMAC_(hSessionHandle, hKeyHandle, uiAlgID, pucIV, pucData, uiDataLength, pucMAC,
+    return getSDFContext<SDFFuncs>()->SDF_CalculateMAC_(hSessionHandle, hKeyHandle, uiAlgID, pucIV, pucData, uiDataLength, pucMAC,
                                   puiMACLength);
   } catch (...) {
     return SDR_NOTSUPPORT;
@@ -694,7 +720,7 @@ int Connector::SDF_CalculateMAC(void *hSessionHandle, void *hKeyHandle, unsigned
 int Connector::SDF_HashInit(void *hSessionHandle, unsigned int uiAlgID, ECCrefPublicKey *pucPublicKey,
                             unsigned char *pucID, unsigned int uiIDLength) const {
   try {
-    return sdf_.SDF_HashInit_(hSessionHandle, uiAlgID, pucPublicKey, pucID, uiIDLength);
+    return getSDFContext<SDFFuncs>()->SDF_HashInit_(hSessionHandle, uiAlgID, pucPublicKey, pucID, uiIDLength);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -702,7 +728,7 @@ int Connector::SDF_HashInit(void *hSessionHandle, unsigned int uiAlgID, ECCrefPu
 
 int Connector::SDF_HashUpdate(void *hSessionHandle, unsigned char *pucData, unsigned int uiDataLength) const {
   try {
-    return sdf_.SDF_HashUpdate_(hSessionHandle, pucData, uiDataLength);
+    return getSDFContext<SDFFuncs>()->SDF_HashUpdate_(hSessionHandle, pucData, uiDataLength);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -710,7 +736,7 @@ int Connector::SDF_HashUpdate(void *hSessionHandle, unsigned char *pucData, unsi
 
 int Connector::SDF_HashFinal(void *hSessionHandle, unsigned char *pucHash, unsigned int *puiHashLength) const {
   try {
-    return sdf_.SDF_HashFinal_(hSessionHandle, pucHash, puiHashLength);
+    return getSDFContext<SDFFuncs>()->SDF_HashFinal_(hSessionHandle, pucHash, puiHashLength);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -720,7 +746,7 @@ int Connector::SDF_CreateFile(void *hSessionHandle, unsigned char *pucFileName,
                               unsigned int uiNameLen, /* max 128-byte */
                               unsigned int uiFileSize) const {
   try {
-    return sdf_.SDF_CreateFile_(hSessionHandle, pucFileName, uiNameLen, uiFileSize);
+    return getSDFContext<SDFFuncs>()->SDF_CreateFile_(hSessionHandle, pucFileName, uiNameLen, uiFileSize);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -729,7 +755,7 @@ int Connector::SDF_CreateFile(void *hSessionHandle, unsigned char *pucFileName,
 int Connector::SDF_ReadFile(void *hSessionHandle, unsigned char *pucFileName, unsigned int uiNameLen,
                             unsigned int uiOffset, unsigned int *puiFileLength, unsigned char *pucBuffer) const {
   try {
-    return sdf_.SDF_ReadFile_(hSessionHandle, pucFileName, uiNameLen, uiOffset, puiFileLength, pucBuffer);
+    return getSDFContext<SDFFuncs>()->SDF_ReadFile_(hSessionHandle, pucFileName, uiNameLen, uiOffset, puiFileLength, pucBuffer);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -738,7 +764,7 @@ int Connector::SDF_ReadFile(void *hSessionHandle, unsigned char *pucFileName, un
 int Connector::SDF_WriteFile(void *hSessionHandle, unsigned char *pucFileName, unsigned int uiNameLen,
                              unsigned int uiOffset, unsigned int uiFileLength, unsigned char *pucBuffer) const {
   try {
-    return sdf_.SDF_WriteFile_(hSessionHandle, pucFileName, uiNameLen, uiOffset, uiFileLength, pucBuffer);
+    return getSDFContext<SDFFuncs>()->SDF_WriteFile_(hSessionHandle, pucFileName, uiNameLen, uiOffset, uiFileLength, pucBuffer);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -746,7 +772,7 @@ int Connector::SDF_WriteFile(void *hSessionHandle, unsigned char *pucFileName, u
 
 int Connector::SDF_DeleteFile(void *hSessionHandle, unsigned char *pucFileName, unsigned int uiNameLen) const {
   try {
-    return sdf_.SDF_DeleteFile_(hSessionHandle, pucFileName, uiNameLen);
+    return getSDFContext<SDFFuncs>()->SDF_DeleteFile_(hSessionHandle, pucFileName, uiNameLen);
   } catch (...) {
     return SDR_NOTSUPPORT;
   }
@@ -862,19 +888,22 @@ int Connector::SVS_VerifySignedMessageFinal(void *hSessionHandle, int method, co
 }
 
 SGD_UINT32 Connector::STF_InitEnvironment(void **phTSHandle) const {
-  return stf_.STF_InitEnvironment_ ? stf_.STF_InitEnvironment_(phTSHandle) : STF_TS_NOT_SUPPORT;
+  auto stfCxt = getSTFContext<STFFuncs>();
+  return stfCxt->STF_InitEnvironment_ ? stfCxt->STF_InitEnvironment_(phTSHandle) : STF_TS_NOT_SUPPORT;
 }
 
 SGD_UINT32 Connector::STF_ClearEnvironment(void *hTSHandle) const {
-  return stf_.STF_ClearEnvironment_ ? stf_.STF_ClearEnvironment_(hTSHandle) : STF_TS_NOT_SUPPORT;
+  auto stfCxt = getSTFContext<STFFuncs>();
+  return stfCxt->STF_ClearEnvironment_ ? stfCxt->STF_ClearEnvironment_(hTSHandle) : STF_TS_NOT_SUPPORT;
 }
 
 SGD_UINT32 Connector::STF_CreateTSRequest(void *hTSHandle, SGD_UINT8 *pucInData, SGD_UINT32 uiInDataLength,
                                           SGD_UINT32 uiReqType, SGD_UINT8 *pucTSExt, SGD_UINT32 uiTSExtLength,
                                           SGD_UINT32 uiHashAlgID, SGD_UINT8 *pucTSRequest,
                                           SGD_UINT32 *puiTSRequestLength) const {
-  return stf_.STF_CreateTSRequest_
-             ? stf_.STF_CreateTSRequest_(hTSHandle, pucInData, uiInDataLength, uiReqType, pucTSExt, uiTSExtLength,
+  auto stfCxt = getSTFContext<STFFuncs>();
+  return stfCxt->STF_CreateTSRequest_
+             ? stfCxt->STF_CreateTSRequest_(hTSHandle, pucInData, uiInDataLength, uiReqType, pucTSExt, uiTSExtLength,
                                          uiHashAlgID, pucTSRequest, puiTSRequestLength)
              : STF_TS_NOT_SUPPORT;
 }
@@ -882,7 +911,8 @@ SGD_UINT32 Connector::STF_CreateTSRequest(void *hTSHandle, SGD_UINT8 *pucInData,
 SGD_UINT32 Connector::STF_CreateTSResponse(void *hTSHandle, SGD_UINT8 *pucTSRequest, SGD_UINT32 uiTSRequestLength,
                                            SGD_UINT32 uiSignatureAlgID, SGD_UINT8 *pucTSResponse,
                                            SGD_UINT32 *puiTSResponseLength) const {
-  return stf_.STF_CreateTSResponse_ ? stf_.STF_CreateTSResponse_(hTSHandle, pucTSRequest, uiTSRequestLength,
+  auto stfCxt = getSTFContext<STFFuncs>();
+  return stfCxt->STF_CreateTSResponse_ ? stfCxt->STF_CreateTSResponse_(hTSHandle, pucTSRequest, uiTSRequestLength,
                                                                  uiSignatureAlgID, pucTSResponse, puiTSResponseLength)
                                     : STF_TS_NOT_SUPPORT;
 }
@@ -890,8 +920,9 @@ SGD_UINT32 Connector::STF_CreateTSResponse(void *hTSHandle, SGD_UINT8 *pucTSRequ
 SGD_UINT32 Connector::STF_VerifyTSValidity(void *hTSHandle, SGD_UINT8 *pucTSResponse, SGD_UINT32 uiTSResponseLength,
                                            SGD_UINT32 uiHashAlgID, SGD_UINT32 uiSignatureAlgID, SGD_UINT8 *pucTSCert,
                                            SGD_UINT32 uiTSCertLength) const {
-  return stf_.STF_VerifyTSValidity_
-             ? stf_.STF_VerifyTSValidity_(hTSHandle, pucTSResponse, uiTSResponseLength, uiHashAlgID, uiSignatureAlgID,
+  auto stfCxt = getSTFContext<STFFuncs>();
+  return stfCxt->STF_VerifyTSValidity_
+             ? stfCxt->STF_VerifyTSValidity_(hTSHandle, pucTSResponse, uiTSResponseLength, uiHashAlgID, uiSignatureAlgID,
                                           pucTSCert, uiTSCertLength)
              : STF_TS_NOT_SUPPORT;
 }
@@ -899,7 +930,8 @@ SGD_UINT32 Connector::STF_VerifyTSValidity(void *hTSHandle, SGD_UINT8 *pucTSResp
 SGD_UINT32 Connector::STF_GetTSInfo(void *hTSHandle, SGD_UINT8 *pucTSResponse, SGD_UINT32 uiTSResponseLength,
                                     SGD_UINT8 *pucIssuerName, SGD_UINT32 *puiIssuerNameLength, SGD_UINT8 *pucTime,
                                     SGD_UINT32 *puiTimeLength) const {
-  return stf_.STF_GetTSInfo_ ? stf_.STF_GetTSInfo_(hTSHandle, pucTSResponse, uiTSResponseLength, pucIssuerName,
+  auto stfCxt = getSTFContext<STFFuncs>();
+  return stfCxt->STF_GetTSInfo_ ? stfCxt->STF_GetTSInfo_(hTSHandle, pucTSResponse, uiTSResponseLength, pucIssuerName,
                                                    puiIssuerNameLength, pucTime, puiTimeLength)
                              : STF_TS_NOT_SUPPORT;
 }
@@ -907,7 +939,8 @@ SGD_UINT32 Connector::STF_GetTSInfo(void *hTSHandle, SGD_UINT8 *pucTSResponse, S
 SGD_UINT32 Connector::STF_GetTSDetail(void *hTSHandle, SGD_UINT8 *pucTSResponse, SGD_UINT32 uiTSResponseLength,
                                       SGD_UINT32 uiItemNumber, SGD_UINT8 *pucItemValue,
                                       SGD_UINT32 *puiItemValueLength) const {
-  return stf_.STF_GetTSDetail_ ? stf_.STF_GetTSDetail_(hTSHandle, pucTSResponse, uiTSResponseLength, uiItemNumber,
+  auto stfCxt = getSTFContext<STFFuncs>();
+  return stfCxt->STF_GetTSDetail_ ? stfCxt->STF_GetTSDetail_(hTSHandle, pucTSResponse, uiTSResponseLength, uiItemNumber,
                                                        pucItemValue, puiItemValueLength)
                                : STF_TS_NOT_SUPPORT;
 }

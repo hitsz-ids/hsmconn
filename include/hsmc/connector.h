@@ -21,9 +21,10 @@
 #include <stdexcept>
 #include <string>
 
-#include "exception.h"
-#include "sdf_funcs.h"
-#include "stf_funcs.h"
+#include <hsmc/exception.h>
+#include <hsmc/sdf.h>
+#include <hsmc/stf.h>
+#include <hsmc/instrument.h>
 
 #ifdef ENABLE_OPENTELEMETRY_API
 #include <opentelemetry/metrics/provider.h>
@@ -57,6 +58,9 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
  public:
   /// Connector的智能指针类型定义
   using Ptr = std::shared_ptr<Connector>;
+
+  /// 设备导出的函数接口上下文
+  using FuncContext = std::shared_ptr<void>;
 
   /// Connector的构造函数，需要传入密码设备的动态库路径
   /// \param nativeLibPath 访问密码设备的客户端动态库路径
@@ -1019,7 +1023,21 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
     return func;
   }
 
- private:
+  /// 设置SDF函数上下文
+  /// \param p SDF函数对象
+  void setSDFContext(const std::shared_ptr<void>& p);
+
+  /// 设置STF函数上下文
+  /// \param p STF函数对象
+  void setSTFContext(const std::shared_ptr<void>& p);
+
+  template<typename T>
+  auto getSDFContext() const;
+
+  template<typename T>
+  auto getSTFContext() const;
+
+  private:
   /// HSM设备连接器动态链接库路径
   std::string nativeLibPath_;
 
@@ -1048,10 +1066,10 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
   ConnectorType connType_;
 
   /// SDF的函数集合对象
-  SDFFuncs sdf_;
+  FuncContext sdf_;
 
   /// STF的函数结合对象
-  STFFuncs stf_;
+  FuncContext stf_;
 
 #ifdef ENABLE_OPENTELEMETRY_API
   opentelemetry::nostd::unique_ptr<opentelemetry::metrics::Counter<uint64_t>> counter;

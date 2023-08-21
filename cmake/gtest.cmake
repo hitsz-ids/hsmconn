@@ -1,7 +1,7 @@
 # cmake/gtest.cmake
 
 find_package(GTest CONFIG QUIET)
-if (NOT gtest_FOUND)
+if (NOT GTest_FOUND)
     set(GTEST_GIT_REPO https://github.com/google/googletest.git)
     set(GTEST_VERSION release-1.11.0)
     message(STATUS "Fetching gtest@${GTEST_VERSION} from repository ${GTEST_GIT_REPO}")

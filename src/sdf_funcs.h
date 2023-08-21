@@ -16,9 +16,9 @@
 
 #include <functional>
 
-#include "base.h"
-#include "instrument.h"
-#include "sdf.h"
+#include "hsmc/base.h"
+#include "hsmc/instrument.h"
+#include "hsmc/sdf.h"
 
 namespace hsmc {
 

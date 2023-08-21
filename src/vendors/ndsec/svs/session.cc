@@ -17,6 +17,7 @@
 #include <absl/strings/str_format.h>
 
 #include "hsmc/pooled_session_impl.h"
+#include "session_impl.h"
 
 namespace hsmc {
 namespace svs {
