@@ -16,6 +16,7 @@
 
 #include <chrono>
 #include <utility>
+#include <functional>
 #include "exception.h"
 
 namespace hsmc {
