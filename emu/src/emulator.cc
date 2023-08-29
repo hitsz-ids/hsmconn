@@ -1343,7 +1343,9 @@ int SDF_ExternalEncrypt_ECC(void *hSessionHandle,
     ret = EC_KEY_set_public_key(seteckey, setpubkey);
     ret = EVP_PKEY_set1_EC_KEY(setpkey, seteckey);
 
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
     EVP_PKEY_set_alias_type(setpkey, EVP_PKEY_SM2);
+#endif
     EVP_PKEY_CTX *ectx = EVP_PKEY_CTX_new(setpkey, nullptr);
     ret = EVP_PKEY_encrypt_init(ectx);
     long unsigned int outbuflen = 0;
@@ -1391,7 +1393,10 @@ int SDF_ExternalDecrypt_ECC(void *hSessionHandle,
     BN_bin2bn((unsigned char *)(pucPrivateKey->K + 32), 32, prikey);
     int ret = EC_KEY_set_private_key(seteckey, prikey);
     ret = EVP_PKEY_set1_EC_KEY(setpkey, seteckey);
+
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
     ret = EVP_PKEY_set_alias_type(setpkey, EVP_PKEY_SM2);
+#endif
     EVP_PKEY_CTX *ectx = EVP_PKEY_CTX_new(setpkey, nullptr);
     ret = EVP_PKEY_decrypt_init(ectx);
     struct SM2_Cipher_st *sm2_cipher_st = SM2_Cipher_new();
