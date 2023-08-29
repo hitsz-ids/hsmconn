@@ -46,6 +46,8 @@ endif()
 
 add_test(hsmc::test hsm-emu-tests)
 
-install(TARGETS hsm-emu-tests
-        LIBRARY DESTINATION lib
-        RUNTIME DESTINATION bin)
+if(HSMC_INSTALL)
+    install(TARGETS hsm-emu-tests
+        LIBRARY DESTINATION ${HSMC_LIBRARY_INSTALL_DIR}
+        RUNTIME DESTINATION ${HSMC_RUNTIME_INSTALL_DIR})
+endif()
