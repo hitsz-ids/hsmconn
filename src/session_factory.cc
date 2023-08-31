@@ -459,11 +459,11 @@ std::vector<uint16_t> SessionFactory::updateWeightRoundTable(ConnectorType ct) {
   } else if (ConnectorType::CT_TSS == ct) {
     conns = &ts_connectors_;
   }
-  if (conns != nullptr) {
+  if (conns != nullptr && conns->size() > 0) {
     connector_round.resize(this->weight_sum_[static_cast<int>(ct)]);
     weight_current_array.resize(conns->size());
     for (int n = 0; n < this->weight_sum_[static_cast<int>(ct)]; n++) {
-      size_t maxSub;
+      size_t maxSub = 0;
       for (size_t m = 0; m < conns->size(); m++) {
         weight_current_array[m] += (*conns)[m]->getWeight();
         if (m == 0 || (*conns)[m]->getWeight() > weight_current_array[maxSub]) {

@@ -1215,7 +1215,7 @@ int SDF_ExternalVerify_ECC(void *hSessionHandle,
                            ECCSignature *pucSignature) {
     int ret = SDR_OK;
     BN_CTX *ctx = nullptr;
-    BIGNUM *order, *R, *m, *X, *t, *x, *y, *r, *s;
+    BIGNUM *order = nullptr, *R = nullptr, *m = nullptr, *X = nullptr, *t = nullptr, *x = nullptr, *y = nullptr, *r = nullptr, *s = nullptr;
     EC_POINT *point = nullptr;
     EC_GROUP *ECgroup = EC_GROUP_new_by_curve_name(NID_sm2);
     EC_POINT *pub_key = EC_POINT_new(ECgroup);
