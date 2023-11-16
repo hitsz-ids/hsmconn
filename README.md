@@ -1,27 +1,27 @@
 # 概述
 
-`HSMC`是一个以C++语言封装的开发库（C++ Headers & Library）。面向需要进行国密改造的业务系统，为其提供异构厂商的密码设备调用能力。业务系统应用程序动态或静态链接HSMC库可实现对底层包括服务器密码机、签名验签服务器、时间戳服务器等设备算力的统一访问。
+`HSMConn`是一个以C++语言封装的开发库（C++ Headers & Library）。面向需要进行国密改造的业务系统，为其提供异构厂商的密码设备调用能力。业务系统应用程序动态或静态链接HSMConn库可实现对底层包括服务器密码机、签名验签服务器、时间戳服务器等设备算力的统一访问。
 
-您可以访问[HSMC官方网站](https://hsmc.idslab.io) 了解更多信息。
+您可以访问[HSMConn官方网站](https://hsmc.idslab.io) 了解更多信息。
 
 ## 架构
 
 
-![HSMC Architecture](docs/hsmc_arch.svg)
+![HSMConn Architecture](docs/hsmc_arch.svg)
 
-`HSMC`为应用程序或密码工具套件提供统一的`HSMC API`接口，通过`HSMC`库对底层异构密码设备的管理和调度，实现上层应用或密码工具对底层设备的透明访问。
+`HSMConn`为应用程序或密码工具套件提供统一的`HSMConn API`接口，通过`HSMConn`库对底层异构密码设备的管理和调度，实现上层应用或密码工具对底层设备的透明访问。
 
-在业务实际开发阶段，可借助自带的`密码机软件模拟器`提供的SDF接口库，实现业务开发测试闭环。在需要满足密评合规的场景下，无需更改业务代码，仅通过变更`HSMC`配置，即可实现密评合规的无缝迁移。
+在业务实际开发阶段，可借助自带的`密码机软件模拟器`提供的SDF接口库，实现业务开发测试闭环。在需要满足密评合规的场景下，无需更改业务代码，仅通过变更`HSMConn`配置，即可实现密评合规的无缝迁移。
 
 
 
 ## 开发
 
-`HSMC`使用cmake进行编译
+`HSMConn`使用cmake进行编译
 
 ### 第三方依赖
 
-`HSMC`依赖的三方库包括：
+`HSMConn`依赖的三方库包括：
 - [`google abseil c++`](https://github.com/abseil/abseil-cpp)开发库
 - [`spdlog`](https://github.com/gabime/spdlog)开发库用于日志记录
 - [`yaml-cpp`](https://github.com/jbeder/yaml-cpp)开发库用于配置文件解析
@@ -107,4 +107,4 @@ int main(int argc, char **argv) {
 更多使用方式，可以参考`test`中的单元测试示例
 
 ## License
-`HSMC` is released under the Apache License 2.0 License.
+`HSMConn` is released under the Apache License 2.0 License.
