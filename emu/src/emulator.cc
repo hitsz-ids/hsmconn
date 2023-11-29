@@ -165,7 +165,7 @@ static int _encrypt_with_kek(int kek_index,
   EVP_CIPHER_CTX *ctx = nullptr;
 
   if ((rc = _get_kek(kek_index, kek_value) != 0)) {
-    return rc;
+    goto cleanup;
   }
 
   /* 使用kek_value中的密钥，使用sm4 ecb算法对inbuf和inlen的数据进行加密 */
@@ -219,7 +219,7 @@ static int _decrypt_with_kek(int kek_index,
   EVP_CIPHER_CTX *ctx = nullptr;
 
   if ((rc = _get_kek(kek_index, kek_value) != 0)) {
-    return rc;
+    goto cleanup;
   }
 
   if (nullptr == (ctx = EVP_CIPHER_CTX_new())) {
@@ -403,87 +403,6 @@ cleanup:
   return rc;
 }
 
-static int EC_KEY2ECCrefPublicKey(EC_KEY *key,
-                                  ECCrefPublicKey **pucPublicKey) {
-  ECCrefPublicKey *publicKey = nullptr;
-  int rc = SDR_OK;
-  unsigned char *dPublicKey = nullptr;
-  int keyBytes = 0;
-  int pubsize = 0;
-
-  if (nullptr == key || nullptr == pucPublicKey) {
-    return SDR_INARGERR;
-  }
-
-  pubsize = i2o_ECPublicKey(key, &dPublicKey);
-  if (65 == pubsize) {
-    keyBytes = 32;
-  } else if (129 == pubsize) {
-    keyBytes = 64;
-  } else {
-    rc = SDR_UNKNOWERR;
-    goto cleanup;
-  }
-
-  publicKey = (ECCrefPublicKey *)malloc(sizeof(ECCrefPublicKey));
-  if (nullptr == publicKey) {
-    rc = SDR_NOBUFFER;
-    goto cleanup;
-  }
-  memset(publicKey, 0, sizeof(ECCrefPublicKey));
-  memcpy(publicKey->x + (64 - keyBytes), dPublicKey + 1, keyBytes);
-  memcpy(publicKey->y + (64 - keyBytes), dPublicKey + 1 + keyBytes, keyBytes);
-  publicKey->bits = keyBytes * 8;
-
-  if (nullptr == *pucPublicKey) {
-    *pucPublicKey = publicKey;
-  } else {
-    memcpy(*pucPublicKey, publicKey, sizeof(ECCrefPublicKey));
-    free(publicKey);
-    publicKey = nullptr;
-  }
-cleanup:
-  if (dPublicKey) {
-    OPENSSL_free(dPublicKey);
-    dPublicKey = nullptr;
-  }
-
-  return rc;
-}
-
-static int EC_KEY2ECCrefPrivateKey(EC_KEY *key,
-                                   ECCrefPrivateKey **pucPrivateKey) {
-  int keyBytes = 0;
-  BIGNUM *privateKey = nullptr;
-  ECCrefPrivateKey *eccPrivateKey = nullptr;
-
-  if (nullptr == key || nullptr == pucPrivateKey) {
-    return SDR_INARGERR;
-  }
-
-  privateKey = (BIGNUM *)EC_KEY_get0_private_key(key);
-
-  eccPrivateKey = (ECCrefPrivateKey *)malloc(sizeof(ECCrefPrivateKey));
-  if (nullptr == eccPrivateKey) {
-    return SDR_NOBUFFER;
-  }
-  memset(eccPrivateKey, 0, sizeof(ECCrefPrivateKey));
-
-  keyBytes = BN_num_bytes(privateKey);
-  BN_bn2bin(privateKey, eccPrivateKey->K + 64 - keyBytes);
-  eccPrivateKey->bits = (keyBytes + 32 - 1) / 32 * 32 * 8;
-
-  if (nullptr == *pucPrivateKey) {
-    *pucPrivateKey = eccPrivateKey;
-  } else {
-    memcpy(*pucPrivateKey, eccPrivateKey, sizeof(ECCrefPrivateKey));
-    free(eccPrivateKey);
-    eccPrivateKey = nullptr;
-  }
-
-  return SDR_OK;
-}
-
 static int _sm2_pretreatment_one(uint8_t *out,
                                  const EVP_MD *digest,
                                  const uint8_t *id,
@@ -603,11 +522,11 @@ int SDF_CloseDevice(void *hDeviceHandle) {
     return SDR_INARGERR;
   }
   hsmc::emu::DevicePtr dev = g_devices->find(hDeviceHandle, true);
-  if (dev) {
-    g_sessions->eraseFromDevice(dev);
-    return SDR_OK;
+  if (!dev) {
+    return SDR_INARGERR;
   }
-  return SDR_INARGERR;
+  g_sessions->eraseFromDevice(dev);
+  return SDR_OK;
 }
 
 int SDF_OpenSession(void *hDeviceHandle, void **phSessionHandle) {
@@ -616,7 +535,9 @@ int SDF_OpenSession(void *hDeviceHandle, void **phSessionHandle) {
     return SDR_INARGERR;
   }
   auto id = dev->getId();
-  auto sessName = absl::StrFormat("%s/sess-%02d", id.c_str(), dev->postIncSeq());
+  auto sessName = absl::StrFormat("%s/sess-%02d",
+                                  id.c_str(),
+                                  dev->postIncSeq());
   auto session = std::make_shared<hsmc::emu::Session>(sessName, dev);
   if (phSessionHandle != nullptr) {
     *phSessionHandle = session.get();
@@ -689,7 +610,7 @@ int SDF_GenerateRandom(void *hSessionHandle,
   t = t * uiLength;
   RAND_seed(&t, sizeof(time_t));
 
-  if (1 != RAND_bytes(pucRandom, uiLength)) {
+  if (!RAND_bytes(pucRandom, (int)uiLength)) {
     return SDR_RANDERR;
   }
 
@@ -780,49 +701,98 @@ int SDF_GenerateKeyPair_ECC(void *hSessionHandle,
                             unsigned int uiKeyBits,
                             ECCrefPublicKey *pucPublicKey,
                             ECCrefPrivateKey *pucPrivateKey) {
-  EC_KEY *eckey = nullptr;
-  int rc = SDR_OK;
+  int rc;
+  BN_CTX *ctx = nullptr;
+  BIGNUM *bn_d = nullptr, *bn_x = nullptr, *bn_y = nullptr;
+  const BIGNUM *bn_order;
+  EC_GROUP *group = nullptr;
+  EC_POINT *ec_pt = nullptr;
 
+  rc = SDR_OPENSESSION;
   if (!_query_session(hSessionHandle)) {
-    return SDR_OPENSESSION;
+    goto cleanup;
   }
 
+  rc = SDR_ALGNOTSUPPORT;
   // 当前算法标识支持SGD_SM2_1,SGD_SM2_3,并且二者产生的密钥对无区别
   if (uiAlgID != SGD_SM2_1 && uiAlgID != SGD_SM2_3) {
-    return SDR_ALGNOTSUPPORT;
+    goto cleanup;
   }
-  // 当前密钥长度支持256bit,512bit暂不支持
+
+  rc = SDR_INARGERR;
   if (uiKeyBits != 256 || nullptr == pucPublicKey || nullptr == pucPrivateKey) {
-    return SDR_INARGERR;
-  }
-
-  eckey = EC_KEY_new_by_curve_name(NID_sm2);
-  if (nullptr == eckey) {
-    rc = SDR_UNKNOWERR;
-    goto cleanup;
-  }
-  if (EC_KEY_generate_key(eckey) != 1) {
-    rc = SDR_KEYERR;
-    goto cleanup;
-  }
-  if (EC_KEY_check_key(eckey) != 1) {
-    rc = SDR_KEYERR;
     goto cleanup;
   }
 
-  rc = EC_KEY2ECCrefPublicKey(eckey, &pucPublicKey);
-  if (rc != SDR_OK) {
+  rc = SDR_NOBUFFER;
+  if ( !(ctx = BN_CTX_secure_new()) ) {
     goto cleanup;
   }
-  rc = EC_KEY2ECCrefPrivateKey(eckey, &pucPrivateKey);
-  if (rc != SDR_OK) {
+  BN_CTX_start(ctx);
+  bn_d = BN_CTX_get(ctx);
+  bn_x = BN_CTX_get(ctx);
+  bn_y = BN_CTX_get(ctx);
+  if ( !bn_y ) {
     goto cleanup;
   }
+
+  rc = SDR_KEYERR;
+  if (!(group = EC_GROUP_new_by_curve_name(NID_sm2))) {
+    goto cleanup;
+  }
+  if (!(bn_order = EC_GROUP_get0_order(group))) {
+    goto cleanup;
+  }
+  if (!(ec_pt = EC_POINT_new(group))) {
+    goto cleanup;
+  }
+
+  do {
+    if (!BN_rand_range(bn_d, bn_order)) {
+      goto cleanup;
+    }
+  } while (BN_is_zero(bn_d));
+
+  if (!EC_POINT_mul(group, ec_pt, bn_d, nullptr, nullptr, ctx)) {
+    goto cleanup;
+  }
+  if (!EC_POINT_get_affine_coordinates_GFp(group,
+                                            ec_pt,
+                                            bn_x,
+                                            bn_y,
+                                            ctx)) {
+    goto cleanup;
+  }
+
+  pucPrivateKey->bits = 256;
+  memset(pucPrivateKey->K, 0, sizeof(pucPrivateKey->K));
+  if (BN_bn2binpad(bn_d, pucPrivateKey->K + 32, 32) != 32) {
+    goto cleanup;
+  }
+  pucPublicKey->bits = 256;
+  memset(pucPublicKey->x, 0, sizeof(pucPublicKey->x));
+  memset(pucPublicKey->y, 0, sizeof(pucPublicKey->y));
+  if (BN_bn2binpad(bn_x,pucPublicKey->x + 32,32) != 32) {
+    goto cleanup;
+  }
+  if (BN_bn2binpad(bn_y,pucPublicKey->y + 32,32) != 32) {
+    goto cleanup;
+  }
+
+  rc = SDR_OK;
 
 cleanup:
-  if (eckey) {
-    EC_KEY_free(eckey);
-    eckey = nullptr;
+  if (ctx) {
+    BN_CTX_end(ctx);
+    BN_CTX_free(ctx);
+  }
+
+  if (group) {
+    EC_GROUP_free(group);
+  }
+
+  if (ec_pt) {
+    EC_POINT_free(ec_pt);
   }
   return rc;
 }
@@ -903,53 +873,73 @@ int SDF_GenerateKeyWithKEK(void *hSessionHandle,
                            unsigned char *pucKey,
                            unsigned int *puiKeyLength,
                            void **phKeyHandle) {
-  unsigned int randomLength = uiKeyBits / 8;
-  auto randomBuf = absl::make_unique<uint8_t[]>(randomLength);
-  int rv = SDF_GenerateRandom(hSessionHandle,
-                              randomLength,
-                              randomBuf.get());
-  if (SDR_OK != rv) {
-    return rv;
-  }
-
+  int rc;
+  unsigned char* key_plain = nullptr, *key_cipher = nullptr;
+  size_t kp_len, kc_len;
+  hsmc::emu::Session::KeyPtr key_ptr;
   hsmc::emu::SessionPtr session;
+
+  rc = SDR_OPENSESSION;
   if (!_query_session(hSessionHandle, &session)) {
-    return SDR_OPENSESSION;
+    goto cleanup;
   }
 
-  int keyCipherLength = randomLength + 16;
-  auto keyCipherBuf = absl::make_unique<uint8_t[]>(keyCipherLength);
-
-  if (_encrypt_with_kek(uiKEKIndex,
-                        randomBuf.get(),
-                        randomLength,
-                        keyCipherBuf.get(),
-                        &keyCipherLength)) {
-    return SDR_KEYERR;
+  rc = SDR_INARGERR;
+  if (0 != (uiKeyBits % 8)) {
+    goto cleanup;
   }
 
-  if (puiKeyLength == nullptr || *puiKeyLength < keyCipherLength) {
+  kp_len = uiKeyBits / 8;
+  if (!(key_plain = (unsigned char*)malloc(kp_len))) {
+    rc = SDR_NOBUFFER;
+    goto cleanup;
+  }
+  if (SDR_OK != (rc = SDF_GenerateRandom(hSessionHandle,
+                                         kp_len,
+                                         key_plain))) {
+    goto cleanup;
+  }
+  kc_len = kp_len + 16;
+  if (!(key_cipher = (unsigned char*)malloc(kc_len))) {
+    rc = SDR_NOBUFFER;
+    goto cleanup;
+  }
+  if (_encrypt_with_kek((int)uiKEKIndex,
+                        key_plain,
+                        (int)kp_len,
+                        key_cipher,
+                        (int*)&kc_len)) {
+    rc = SDR_KEYERR;
+    goto cleanup;
+  }
+  if (puiKeyLength == nullptr || *puiKeyLength < kc_len) {
     if (puiKeyLength != nullptr) {
-      *puiKeyLength = keyCipherLength;
+      *puiKeyLength = kc_len;
     }
-    return SDR_NOBUFFER;
+    rc = SDR_OUTARGERR;
+    goto cleanup;
   }
-
-  auto key = std::make_shared<hsmc::emu::Session::Key>(randomBuf.get(),
-                                                       randomLength,
-                                                       uiKEKIndex);
-  session->addKey(key);
-
   if (pucKey != nullptr) {
-    memcpy(pucKey, keyCipherBuf.get(), keyCipherLength);
-    *puiKeyLength = keyCipherLength;
+    memcpy(pucKey, key_cipher, kc_len);
+    *puiKeyLength = kc_len;
   }
 
+  key_ptr = std::make_shared<hsmc::emu::Session::Key>(
+      key_plain, kp_len, uiKEKIndex);
+  session->addKey(key_ptr);
   if (phKeyHandle != nullptr) {
-    *phKeyHandle = key.get();
+    *phKeyHandle = key_ptr.get();
   }
+  rc = SDR_OK;
 
-  return SDR_OK;
+cleanup:
+  if (key_plain) {
+    free(key_plain);
+  }
+  if (key_cipher) {
+    free(key_cipher);
+  }
+  return rc;
 }
 
 int SDF_ImportKeyWithKEK(void *hSessionHandle,
@@ -958,32 +948,50 @@ int SDF_ImportKeyWithKEK(void *hSessionHandle,
                          unsigned char *pucKey,
                          unsigned int uiKeyLength,
                          void **phKeyHandle) {
+  int rc;
+  unsigned char *key_plain = nullptr;
+  int kp_len;
+  hsmc::emu::Session::KeyPtr key_ptr;
   hsmc::emu::SessionPtr session;
+
+  rc = SDR_OPENSESSION;
   if (!_query_session(hSessionHandle, &session)) {
-    return SDR_OPENSESSION;
+    goto cleanup;
   }
 
-  int keyPlainLength = uiKeyLength;
-  auto keyPlainBuf = absl::make_unique<uint8_t[]>(keyPlainLength);
+  rc = SDR_INARGERR;
+  if (!pucKey) {
+    goto cleanup;
+  }
 
+  kp_len = (int)uiKeyLength;
+  if (!(key_plain = (unsigned char*)malloc(kp_len))) {
+    rc = SDR_NOBUFFER;
+    goto cleanup;
+  }
   if (_decrypt_with_kek(uiKEKIndex,
                         pucKey,
                         uiKeyLength,
-                        keyPlainBuf.get(),
-                        &keyPlainLength)) {
-    return SDR_KEYERR;
+                        key_plain,
+                        &kp_len)) {
+    rc = SDR_KEYERR;
+    goto cleanup;
   }
 
-  auto key = std::make_shared<hsmc::emu::Session::Key>(keyPlainBuf.get(),
-                                                       keyPlainLength,
-                                                       uiKEKIndex);
-  session->addKey(key);
+  key_ptr = std::make_shared<hsmc::emu::Session::Key>(
+      key_plain, kp_len, uiKEKIndex);
+  session->addKey(key_ptr);
 
   if (phKeyHandle != nullptr) {
-    *phKeyHandle = key.get();
+    *phKeyHandle = key_ptr.get();
   }
+  rc = SDR_OK;
 
-  return SDR_OK;
+cleanup:
+  if (key_plain) {
+    free(key_plain);
+  }
+  return rc;
 }
 
 int SDF_ImportKey(void *hSessionHandle,
@@ -999,11 +1007,12 @@ int SDF_ImportKey(void *hSessionHandle,
     return SDR_OPENSESSION;
   }
 
-  auto key = std::make_shared<hsmc::emu::Session::Key>(pucKey, uiKeyLength);
-  session->addKey(key);
+  auto key_ptr = std::make_shared<hsmc::emu::Session::Key>(
+      pucKey, uiKeyLength);
+  session->addKey(key_ptr);
 
   if (phKeyHandle != nullptr) {
-    *phKeyHandle = key.get();
+    *phKeyHandle = key_ptr.get();
   }
 
   return SDR_OK;
@@ -1078,6 +1087,11 @@ int SDF_ExternalSign_ECC(void *hSessionHandle,
   const BIGNUM *bn_order = nullptr;
   const EC_POINT *generator = nullptr;
   EC_POINT *k_G = nullptr;
+
+  rc = SDR_OPENSESSION;
+  if (!_query_session(hSessionHandle)) {
+    goto cleanup;
+  }
 
   rc = SDR_ALGNOTSUPPORT;
   if (uiAlgID != SGD_SM2_1) {
@@ -1240,6 +1254,11 @@ int SDF_ExternalVerify_ECC(void *hSessionHandle,
   const BIGNUM *bn_order = nullptr;
   const EC_POINT *generator = nullptr;
   EC_POINT *ec_pubkey_pt = nullptr, *ec_pt1 = nullptr, *ec_pt2 = nullptr;
+
+  rc = SDR_OPENSESSION;
+  if (!_query_session(hSessionHandle)) {
+    goto cleanup;
+  }
 
   rc = SDR_ALGNOTSUPPORT;
   if (uiAlgID != SGD_SM2_1) {
@@ -1424,6 +1443,11 @@ int SDF_ExternalEncrypt_ECC(void *hSessionHandle,
   const EVP_MD *md;
   EVP_MD_CTX *md_ctx = nullptr;
   int i, flag;
+
+  rc = SDR_OPENSESSION;
+  if (!_query_session(hSessionHandle)) {
+    goto cleanup;
+  }
 
   rc = SDR_ALGNOTSUPPORT;
   if (uiAlgID != SGD_SM2_3) {
@@ -1644,6 +1668,11 @@ int SDF_ExternalDecrypt_ECC(void *hSessionHandle,
   const EVP_MD *md;
   EVP_MD_CTX *md_ctx = nullptr;
   int i, flag;
+
+  rc = SDR_OPENSESSION;
+  if (!_query_session(hSessionHandle)) {
+    goto cleanup;
+  }
 
   rc = SDR_ALGNOTSUPPORT;
   if (uiAlgID != SGD_SM2_3) {

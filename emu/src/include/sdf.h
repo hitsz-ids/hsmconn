@@ -143,6 +143,7 @@ extern "C" {
 // extended error code
 #define SDR_NO_CONFIG             (SDR_BASE + 0x00000200)
 #define SDR_CONFIG_BAD            (SDR_BASE + 0x00000201)
+#define SDR_BUFFER_TOO_SHORT      (SDR_BASE + 0x00000202)
 
 #define RSAref_MAX_BITS           2048
 #define RSAref_MAX_LEN            ((RSAref_MAX_BITS + 7) / 8)

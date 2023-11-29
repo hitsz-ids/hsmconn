@@ -386,9 +386,7 @@ TEST_F(EmulatorTest, SDF_ExternalEncDec_ECC) {
     memset((unsigned char *)&st_pub_key, 0, sizeof(ECCrefPublicKey));
     memset((unsigned char *)&st_pri_key, 0, sizeof(ECCrefPrivateKey));
 
-    int rc;
     st_pub_key.bits = 256;
-    printf("exportenc pub bits =%d\n", st_pub_key.bits);
     memcpy(st_pub_key.x + 32, pubkey_test, 32);
     memcpy(st_pub_key.y + 32, pubkey_test + 32, 32);
     st_pri_key.bits = 256;
@@ -593,7 +591,7 @@ TEST_F(EmulatorTest, SDF_CalculateMAC_SGD_SM4_MAC) {
                           keyHandle,
                           SGD_SM4_MAC,
                           iv,
-                     message2,
+                          message2,
                           messageLen2,
                           macBuf2.get(),
                           &macLen2);
