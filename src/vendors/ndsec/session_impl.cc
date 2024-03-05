@@ -22,8 +22,8 @@
 namespace hsmc {
 namespace ndsec {
 
-SessionImpl::SessionImpl(::hsmc::Connector::Ptr connector)
-    : ::hsmc::SessionImpl(connector), hSession_(nullptr) {
+SessionImpl::SessionImpl(hsmc::Connector::Ptr connector)
+    : hsmc::SessionImpl(std::move(connector)), hSession_(nullptr) {
 }
 
 SessionImpl::~SessionImpl() = default;

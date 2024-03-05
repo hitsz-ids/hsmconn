@@ -102,7 +102,7 @@ class HSMC_API SessionFactory final {
   /// 创建设备连接器
   /// \param name 设备节点名称
   /// \param ct   设备类型，默认为CT_HSM服务器密码机
-  /// \param 设备连接器对象
+  /// \return 设备连接器对象
   Connector::Ptr createConnector(const std::string &name, ConnectorType ct = ConnectorType::CT_HSM);
 
   /// 设备连接器容器类型

@@ -366,9 +366,9 @@ int Session::SVS_SignMessage(int method, uint32_t signPrivateKeyIndex, const cha
 
 int Session::SVS_VerifySignedMessage(const uint8_t *data, uint32_t dataLen, const uint8_t *signData,
                                      uint32_t signDataLen, bool isHashFlag, bool isOriginalText,
-                                     bool isCertificateChain, bool isCrl, bool sAuthenticationAttributes) const {
+                                     bool isCertificateChain, bool isCrl, bool isAuthenticationAttributes) const {
   return pImpl_->SVS_VerifySignedMessage(data, dataLen, signData, signDataLen, isHashFlag, isOriginalText,
-                                         isCertificateChain, isCrl, sAuthenticationAttributes);
+                                         isCertificateChain, isCrl, isAuthenticationAttributes);
 }
 
 int Session::SVS_SignMessageInit(int method, const uint8_t *data, uint32_t dataLen, uint8_t *hashData,

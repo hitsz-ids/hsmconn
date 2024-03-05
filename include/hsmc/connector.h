@@ -235,12 +235,14 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
   virtual int SDF_GetDeviceInfo(void *hSessionHandle, DEVICEINFO *pstDeviceInfo) const;
 
   /// SDF_GenerateRandom
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiLength
   /// \param pucRandom
   /// \return
   virtual int SDF_GenerateRandom(void *hSessionHandle, unsigned int uiLength, unsigned char *pucRandom) const;
 
   /// SDF_GetPrivateKeyAccessRight
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyIndex
   /// \param pucPassword
   /// \param uiPwdLength
@@ -249,11 +251,13 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                            unsigned int uiPwdLength) const;
 
   /// SDF_ReleasePrivateKeyAccessRight
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyIndex
   /// \return
   virtual int SDF_ReleasePrivateKeyAccessRight(void *hSessionHandle, unsigned int uiKeyIndex) const;
 
   /// SDF_ExportSignPublicKey_RSA
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyIndex
   /// \param pucPublicKey
   /// \return
@@ -261,6 +265,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                           RSArefPublicKey *pucPublicKey) const;
 
   /// SDF_ExportEncPublicKey_RSA
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyIndex
   /// \param pucPublicKey
   /// \return
@@ -268,6 +273,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                          RSArefPublicKey *pucPublicKey) const;
 
   /// SDF_GenerateKeyPair_RSA
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyBits
   /// \param pucPublicKey
   /// \param pucPrivateKey
@@ -276,6 +282,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                       RSArefPrivateKey *pucPrivateKey) const;
 
   /// SDF_GenerateKeyWithIPK_RSA
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiIPKIndex
   /// \param uiKeyBits
   /// \param pucKey
@@ -286,6 +293,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                          unsigned char *pucKey, unsigned int *puiKeyLength, void **phKeyHandle) const;
 
   /// SDF_GenerateKeyWithEPK_RSA
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyBits
   /// \param pucPublicKey
   /// \param pucKey
@@ -296,6 +304,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                          unsigned char *pucKey, unsigned int *puiKeyLength, void **phKeyHandle) const;
 
   /// SDF_ImportKeyWithISK_RSA
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiISKIndex
   /// \param pucKey
   /// \param uiKeyLength
@@ -305,6 +314,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                        unsigned int uiKeyLength, void **phKeyHandle) const;
 
   /// SDF_ExchangeDigitEnvelopeBaseOnRSA
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyIndex
   /// \param pucPublicKey
   /// \param pucDEInput
@@ -318,6 +328,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                                  unsigned int *puiDELength) const;
 
   /// SDF_ExportSignPublicKey_ECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyIndex
   /// \param pucPublicKey
   /// \return
@@ -325,6 +336,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                           ECCrefPublicKey *pucPublicKey) const;
 
   /// SDF_ExportEncPublicKey_ECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyIndex
   /// \param pucPublicKey
   /// \return
@@ -332,6 +344,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                          ECCrefPublicKey *pucPublicKey) const;
 
   /// SDF_GenerateKeyPair_ECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiAlgID
   /// \param uiKeyBits
   /// \param pucPublicKey
@@ -341,6 +354,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                       ECCrefPublicKey *pucPublicKey, ECCrefPrivateKey *pucPrivateKey) const;
 
   /// SDF_GenerateKeyWithIPK_ECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiIPKIndex
   /// \param uiKeyBits
   /// \param pucKey
@@ -350,6 +364,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                          ECCCipher *pucKey, void **phKeyHandle) const;
 
   /// SDF_GenerateKeyWithEPK_ECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyBits
   /// \param uiAlgID
   /// \param pucPublicKey
@@ -360,6 +375,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                          ECCrefPublicKey *pucPublicKey, ECCCipher *pucKey, void **phKeyHandle) const;
 
   /// SDF_ImportKeyWithISK_ECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiISKIndex
   /// \param pucKey
   /// \param phKeyHandle
@@ -368,6 +384,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                        void **phKeyHandle) const;
 
   /// SDF_GenerateAgreementDataWithECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiISKIndex
   /// \param uiKeyBits
   /// \param pucSponsorID
@@ -382,6 +399,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                                ECCrefPublicKey *pucSponsorTmpPublicKey, void **phAgreementHandle) const;
 
   /// SDF_GenerateKeyWithECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param pucResponseID
   /// \param uiResponseIDLength
   /// \param pucResponsePublicKey
@@ -395,6 +413,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                      void **phKeyHandle) const;
 
   /// SDF_GenerateAgreementDataAndKeyWithECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiISKIndex
   /// \param uiKeyBits
   /// \param pucResponseID
@@ -414,6 +433,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
       ECCrefPublicKey *pucResponsePublicKey, ECCrefPublicKey *pucResponseTmpPublicKey, void **phKeyHandle) const;
 
   /// SDF_ExchangeDigitEnvelopeBaseOnECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyIndex
   /// \param uiAlgID
   /// \param pucPublicKey
@@ -425,6 +445,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                                  ECCCipher *pucEncDataOut) const;
 
   /// SDF_GenerateKeyWithKEK
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyBits
   /// \param uiAlgID
   /// \param uiKEKIndex
@@ -437,6 +458,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                      void **phKeyHandle) const;
 
   /// SDF_ImportKeyWithKEK
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiAlgID
   /// \param uiKEKIndex
   /// \param pucKey
@@ -447,6 +469,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                    unsigned char *pucKey, unsigned int uiKeyLength, void **phKeyHandle) const;
 
   /// SDF_ImportKey
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param pucKey
   /// \param uiKeyLength
   /// \param phKeyHandle
@@ -455,11 +478,13 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                             void **phKeyHandle) const;
 
   /// SDF_DestroyKey
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param hKeyHandle
   /// \return
   virtual int SDF_DestroyKey(void *hSessionHandle, void *hKeyHandle) const;
 
   /// SDF_ExternalPublicKeyOperation_RSA
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param pucPublicKey
   /// \param pucDataInput
   /// \param uiInputLength
@@ -471,6 +496,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                                  unsigned char *pucDataOutput, unsigned int *puiOutputLength) const;
 
   /// SDF_InternalPublicKeyOperation_RSA
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyIndex
   /// \param pucDataInput
   /// \param uiInputLength
@@ -482,6 +508,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                                  unsigned char *pucDataOutput, unsigned int *puiOutputLength) const;
 
   /// SDF_InternalPrivateKeyOperation_RSA
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiKeyIndex
   /// \param pucDataInput
   /// \param uiInputLength
@@ -493,6 +520,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                                   unsigned char *pucDataOutput, unsigned int *puiOutputLength) const;
 
   /// SDF_ExternalPrivateKeyOperation_RSA
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param pucPrivateKey
   /// \param pucDataInput
   /// \param uiInputLength
@@ -504,6 +532,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                                   unsigned char *pucDataOutput, unsigned int *puiOutputLength) const;
 
   /// SDF_ExternalSign_ECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiAlgID
   /// \param pucPrivateKey
   /// \param pucData
@@ -514,6 +543,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                    unsigned char *pucData, unsigned int uiDataLength, ECCSignature *pucSignature) const;
 
   /// SDF_ExternalVerify_ECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiAlgID
   /// \param pucPublicKey
   /// \param pucDataInput
@@ -525,6 +555,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                      ECCSignature *pucSignature) const;
 
   /// SDF_InternalSign_ECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiISKIndex
   /// \param pucData
   /// \param uiDataLength
@@ -534,6 +565,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                    unsigned int uiDataLength, ECCSignature *pucSignature) const;
 
   /// SDF_InternalVerify_ECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiIPKIndex
   /// \param pucData
   /// \param uiDataLength
@@ -543,6 +575,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                      unsigned int uiDataLength, ECCSignature *pucSignature) const;
 
   /// SDF_ExternalEncrypt_ECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiAlgID
   /// \param pucPublicKey
   /// \param pucData
@@ -553,6 +586,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                       unsigned char *pucData, unsigned int uiDataLength, ECCCipher *pucEncData) const;
 
   /// SDF_ExternalDecrypt_ECC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiAlgID
   /// \param pucPrivateKey
   /// \param pucEncData
@@ -563,6 +597,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                       ECCCipher *pucEncData, unsigned char *pucData, unsigned int *puiDataLength) const;
 
   /// SDF_Encrypt
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param hKeyHandle
   /// \param uiAlgID
   /// \param pucIV
@@ -576,6 +611,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                           unsigned int *puiEncDataLength) const;
 
   /// SDF_Decrypt
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param hKeyHandle
   /// \param uiAlgID
   /// \param pucIV
@@ -589,6 +625,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                           unsigned int *puiDataLength) const;
 
   /// SDF_CalculateMAC
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param hKeyHandle
   /// \param uiAlgID
   /// \param pucIV
@@ -602,6 +639,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                unsigned int *puiMACLength) const;
 
   /// SDF_HashInit
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param uiAlgID
   /// \param pucPublicKey
   /// \param pucID
@@ -611,18 +649,21 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                            unsigned char *pucID, unsigned int uiIDLength) const;
 
   /// SDF_HashUpdate
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param pucData
   /// \param uiDataLength
   /// \return
   virtual int SDF_HashUpdate(void *hSessionHandle, unsigned char *pucData, unsigned int uiDataLength) const;
 
   /// SDF_HashFinal
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param pucHash
   /// \param puiHashLength
   /// \return
   virtual int SDF_HashFinal(void *hSessionHandle, unsigned char *pucHash, unsigned int *puiHashLength) const;
 
   /// SDF_CreateFile
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param pucFileName
   /// \param uiNameLen
   /// \param uiFileSize
@@ -632,6 +673,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                              unsigned int uiFileSize) const;
 
   /// SDF_ReadFile
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param pucFileName
   /// \param uiNameLen
   /// \param uiOffset
@@ -642,6 +684,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                            unsigned int uiOffset, unsigned int *puiFileLength, unsigned char *pucBuffer) const;
 
   /// SDF_WriteFile
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param pucFileName
   /// \param uiNameLen
   /// \param uiOffset
@@ -652,6 +695,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                             unsigned int uiOffset, unsigned int uiFileLength, unsigned char *pucBuffer) const;
 
   /// SDF_DeleteFile
+  /// \param hSessionHandle 密码机设备会话句柄
   /// \param pucFileName
   /// \param uiNameLen
   /// \return
@@ -770,7 +814,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                        uint8_t *hashData, uint32_t *hashDataLen) const;
 
   /// 多包数据签名验签更新
-  /// \param hSessonHandle
+  /// \param hSessionHandle
   /// \param method
   /// \param hashMediantData
   /// \param hashMediantDataLen
@@ -888,7 +932,7 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
                                           uint8_t *hashData, uint32_t *hashDataLen) const;
 
   /// 多包消息签名验签更新
-  /// \param hSessonHandle
+  /// \param hSessionHandle
   /// \param method
   /// \param hashMediantData
   /// \param hashMediantDataLen
@@ -904,14 +948,10 @@ class HSMC_API Connector : public std::enable_shared_from_this<Connector>, publi
   /// 多包消息签名验签结束
   /// \param hSessionHandle
   /// \param method
-  /// \param type
-  /// \param certData
-  /// \param certDataLen
   /// \param hashMediantData
   /// \param hashMediantDataLen
   /// \param signData
   /// \param signDataLen
-  /// \param verifyLevel
   /// \return
   virtual int SVS_VerifySignedMessageFinal(void *hSessionHandle, int method, const uint8_t *hashMediantData,
                                            uint32_t hashMediantDataLen, const uint8_t *signData,
