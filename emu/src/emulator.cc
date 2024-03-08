@@ -164,7 +164,7 @@ static int _encrypt_with_kek(int kek_index,
   int out_len = 0, total_len = 0;
   EVP_CIPHER_CTX *ctx = nullptr;
 
-  if ((rc = _get_kek(kek_index, kek_value) != 0)) {
+  if ((rc = _get_kek(kek_index, kek_value)) != 0) {
     goto cleanup;
   }
 
@@ -218,7 +218,7 @@ static int _decrypt_with_kek(int kek_index,
   int out_len, total_len = 0;
   EVP_CIPHER_CTX *ctx = nullptr;
 
-  if ((rc = _get_kek(kek_index, kek_value) != 0)) {
+  if ((rc = _get_kek(kek_index, kek_value)) != 0) {
     goto cleanup;
   }
 
@@ -912,24 +912,19 @@ int SDF_GenerateKeyWithKEK(void *hSessionHandle,
     rc = SDR_KEYERR;
     goto cleanup;
   }
-  if (puiKeyLength == nullptr || *puiKeyLength < kc_len) {
-    if (puiKeyLength != nullptr) {
-      *puiKeyLength = kc_len;
-    }
+  if (pucKey == nullptr || puiKeyLength == nullptr || *puiKeyLength < kc_len
+      || phKeyHandle == nullptr) {
     rc = SDR_OUTARGERR;
     goto cleanup;
   }
-  if (pucKey != nullptr) {
-    memcpy(pucKey, key_cipher, kc_len);
-    *puiKeyLength = kc_len;
-  }
+  memcpy(pucKey, key_cipher, kc_len);
+  *puiKeyLength = kc_len;
 
   key_ptr = std::make_shared<hsmc::emu::Session::Key>(
       key_plain, kp_len, uiKEKIndex);
   session->addKey(key_ptr);
-  if (phKeyHandle != nullptr) {
-    *phKeyHandle = key_ptr.get();
-  }
+  *phKeyHandle = key_ptr.get();
+  
   rc = SDR_OK;
 
 cleanup:
@@ -978,13 +973,15 @@ int SDF_ImportKeyWithKEK(void *hSessionHandle,
     goto cleanup;
   }
 
+  if (phKeyHandle == nullptr) {
+    rc = SDR_OUTARGERR;
+    goto cleanup;
+  }
   key_ptr = std::make_shared<hsmc::emu::Session::Key>(
       key_plain, kp_len, uiKEKIndex);
   session->addKey(key_ptr);
-
-  if (phKeyHandle != nullptr) {
-    *phKeyHandle = key_ptr.get();
-  }
+  *phKeyHandle = key_ptr.get();
+  
   rc = SDR_OK;
 
 cleanup:
@@ -1007,13 +1004,13 @@ int SDF_ImportKey(void *hSessionHandle,
     return SDR_OPENSESSION;
   }
 
+  if (phKeyHandle == nullptr) {
+    return SDR_OUTARGERR;
+  }
   auto key_ptr = std::make_shared<hsmc::emu::Session::Key>(
       pucKey, uiKeyLength);
   session->addKey(key_ptr);
-
-  if (phKeyHandle != nullptr) {
-    *phKeyHandle = key_ptr.get();
-  }
+  *phKeyHandle = key_ptr.get();
 
   return SDR_OK;
 }
@@ -2050,43 +2047,58 @@ cleanup:
 int SDF_HashUpdate(void *hSessionHandle,
                    unsigned char *pucData,
                    unsigned int uiDataLength) {
-  if (nullptr == pucData || uiDataLength <= 0) {
-    return SDR_INARGERR;
-  }
+  int rc = 0;
 
   hsmc::emu::SessionPtr session;
   if (!_query_session(hSessionHandle, &session)) {
-    return SDR_OPENSESSION;
+    rc = SDR_OPENSESSION;
+    goto cleanup;
+  }
+
+  if (!(SDF_UserData_t*)session->getUserdata()
+       || nullptr == pucData || uiDataLength <= 0) {
+    rc = SDR_INARGERR;
+    goto cleanup;
   }
 
   if (EVP_DigestUpdate(((SDF_UserData_t*)session->getUserdata())->mdCtx,
                        pucData,
                        uiDataLength) != 1) {
-    return SDR_UNKNOWERR;
+    rc = SDR_UNKNOWERR;
   }
 
-  return SDR_OK;
+cleanup:
+  if (rc != 0) {
+    session->resetUserdata();
+  }
+
+  return rc;
 }
 
 int SDF_HashFinal(void *hSessionHandle,
                   unsigned char *pucHash,
                   unsigned int *puiHashLength) {
-  if (nullptr == pucHash) {
-    return SDR_INARGERR;
-  }
+  int rc = 0;
 
   hsmc::emu::SessionPtr session;
   if (!_query_session(hSessionHandle, &session)) {
-    return SDR_OPENSESSION;
+    rc = SDR_OPENSESSION;
+    goto cleanup;
+  }
+
+  if (!(SDF_UserData_t*)session->getUserdata() || nullptr == pucHash) {
+    rc = SDR_INARGERR;
+    goto cleanup;
   }
 
   if (EVP_DigestFinal(((SDF_UserData_t*)session->getUserdata())->mdCtx,
                       pucHash,
                       puiHashLength) != 1) {
-    return SDR_UNKNOWERR;
+    rc = SDR_UNKNOWERR;
   }
-
-  return SDR_OK;
+cleanup:
+  session->resetUserdata();
+  return rc;
 }
 
 int SDF_CreateFile(void *hSessionHandle,
